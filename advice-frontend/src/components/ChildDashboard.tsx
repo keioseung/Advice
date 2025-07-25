@@ -24,6 +24,8 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   const [selectedAdvice, setSelectedAdvice] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const [currentAge] = useState(25) // 임시로 25세 설정
+  const [fatherName, setFatherName] = useState('')
+  const [showFatherNameInput, setShowFatherNameInput] = useState(true)
 
   // 샘플 데이터
   useEffect(() => {
@@ -97,7 +99,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
             안녕, {user.name}! 🌟
           </h2>
           <p className="text-white/80">
-            아빠가 너를 위해 준비한 특별한 메시지들이 있어 ❤️
+            {fatherName ? `${fatherName}님이 당신을 위해 남겨놓은 글귀예요 ❤️` : '아버지가 당신을 위해 준비한 특별한 메시지들이 있어요 ❤️'}
           </p>
         </div>
         <button
@@ -108,6 +110,37 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
           로그아웃
         </button>
       </div>
+
+      {/* Father Name Input */}
+      {showFatherNameInput && (
+        <motion.div 
+          className="glass-effect rounded-2xl p-6 bg-gradient-to-r from-blue-100 to-purple-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              아버지의 이름을 알려주세요 💝
+            </h3>
+            <div className="flex gap-3 justify-center items-center">
+              <input
+                type="text"
+                value={fatherName}
+                onChange={(e) => setFatherName(e.target.value)}
+                placeholder="아버지 이름"
+                className="input-field flex-1 max-w-xs"
+              />
+              <button
+                onClick={() => setShowFatherNameInput(false)}
+                disabled={!fatherName.trim()}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Profile Card */}
       <motion.div 
@@ -138,7 +171,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         >
           <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-800">{availableAdvices.length}</div>
-          <div className="text-sm text-gray-600">지금 읽을 수 있는 조언</div>
+          <div className="text-sm text-gray-600">지금 읽을 수 있는 글귀</div>
         </motion.div>
         
         <motion.div 
@@ -147,7 +180,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         >
           <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-800">{futureAdvices.length}</div>
-          <div className="text-sm text-gray-600">미래의 조언</div>
+          <div className="text-sm text-gray-600">미래의 글귀</div>
         </motion.div>
         
         <motion.div 
@@ -156,16 +189,16 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         >
           <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-800">{favoriteAdvices.length}</div>
-          <div className="text-sm text-gray-600">즐겨찾기</div>
+          <div className="text-sm text-gray-600">마음에 든 글귀</div>
         </motion.div>
       </div>
 
       {/* Filter Buttons */}
       <div className="flex gap-2 flex-wrap">
         {[
-          { key: 'available', label: '💝 지금 읽을 수 있는 조언', icon: Heart },
-          { key: 'future', label: '🔒 미래의 조언', icon: Lock },
-          { key: 'favorites', label: '⭐ 즐겨찾기', icon: Star }
+          { key: 'available', label: '💝 지금 읽을 수 있는 글귀', icon: Heart },
+          { key: 'future', label: '🔒 미래의 글귀', icon: Lock },
+          { key: 'favorites', label: '⭐ 마음에 든 글귀', icon: Star }
         ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -186,9 +219,9 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
       <div className="glass-effect rounded-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">
-            {filter === 'available' && '💝 지금 읽을 수 있는 조언'}
-            {filter === 'future' && '🔒 미래의 조언'}
-            {filter === 'favorites' && '⭐ 즐겨찾기한 조언'}
+            {filter === 'available' && '💝 지금 읽을 수 있는 글귀'}
+            {filter === 'future' && '🔒 미래의 글귀'}
+            {filter === 'favorites' && '⭐ 마음에 든 글귀'}
           </h3>
           <Filter className="w-5 h-5 text-gray-500" />
         </div>
@@ -206,9 +239,9 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
           
           {filteredAdvices.length === 0 && (
             <div className="text-center py-12 text-gray-500">
-              {filter === 'available' && '아직 읽을 수 있는 조언이 없어요 😊'}
-              {filter === 'future' && '미래의 조언이 없어요 🌟'}
-              {filter === 'favorites' && '즐겨찾기한 조언이 없어요 ⭐'}
+              {filter === 'available' && '아직 읽을 수 있는 글귀가 없어요 😊'}
+              {filter === 'future' && '미래의 글귀가 없어요 🌟'}
+              {filter === 'favorites' && '마음에 든 글귀가 없어요 ⭐'}
             </div>
           )}
         </div>
