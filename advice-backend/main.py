@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -28,10 +29,16 @@ app.add_middleware(
         "https://advice-app-frontend.vercel.app",
         "https://mmo-production-34bc.up.railway.app"
     ],
+    allow_origin_regex="https://.*\\.up\\.railway\\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Preflight OPTIONS 핸들러 (모든 경로)
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(request: Request, rest_of_path: str):
+    return JSONResponse(status_code=200, content={})
 
 # Supabase 설정
 supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
