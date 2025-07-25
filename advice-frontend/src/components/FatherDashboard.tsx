@@ -9,9 +9,7 @@ import {
   Heart, 
   BookOpen, 
   Star,
-  Filter,
-  Eye,
-  EyeOff
+  Filter
 } from 'lucide-react'
 import AdviceForm from './AdviceForm'
 import AdviceCard from './AdviceCard'
@@ -84,16 +82,8 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
 
   const filteredAdvices = advices.filter(advice => {
     if (filter === 'all') return true
-    if (filter === 'read') return advice.is_read
-    if (filter === 'unread') return !advice.is_read
     return advice.category === filter
   })
-
-  const stats = {
-    total: advices.length,
-    read: advices.filter(a => a.is_read).length,
-    unread: advices.filter(a => !a.is_read).length
-  }
 
   return (
     <div className="space-y-8">
@@ -116,35 +106,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
-        >
-          <MessageSquare className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
-          <div className="text-sm text-gray-600">총 조언 수</div>
-        </motion.div>
-        
-        <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
-        >
-          <Eye className="w-8 h-8 text-green-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{stats.read}</div>
-          <div className="text-sm text-gray-600">읽힌 조언</div>
-        </motion.div>
-        
-        <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
-        >
-          <EyeOff className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{stats.unread}</div>
-          <div className="text-sm text-gray-600">안 읽힌 조언</div>
-        </motion.div>
-      </div>
+
 
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-8">
@@ -169,9 +131,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                 { key: 'all', label: '전체', icon: MessageSquare },
                 { key: 'life', label: '인생 조언', icon: Heart },
                 { key: 'love', label: '사랑', icon: Heart },
-                { key: 'career', label: '진로', icon: BookOpen },
-                { key: 'read', label: '읽힌 조언', icon: Eye },
-                { key: 'unread', label: '안 읽힌 조언', icon: EyeOff }
+                { key: 'career', label: '진로', icon: BookOpen }
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
