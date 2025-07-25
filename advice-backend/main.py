@@ -125,7 +125,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise credentials_exception
     
     # Supabase에서 사용자 정보 조회
-    response = supabase.table("advice_app.users").select("*").eq("user_id", token_data.user_id).execute()
+    response = supabase.table("users").select("*").eq("user_id", token_data.user_id).execute()
     
     if not response.data:
         raise credentials_exception
@@ -141,13 +141,13 @@ async def root():
 @app.post("/auth/register", response_model=Token)
 async def register(user: UserCreate):
     # 기존 사용자 확인
-    response = supabase.table("advice_app.users").select("*").eq("user_id", user.user_id).execute()
+    response = supabase.table("users").select("*").eq("user_id", user.user_id).execute()
     if response.data:
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자 ID입니다")
     
     # 자녀인 경우 아버지 ID 확인
     if user.user_type == "child" and user.father_id:
-        father_response = supabase.table("advice_app.users").select("*").eq("user_id", user.father_id).eq("user_type", "father").execute()
+        father_response = supabase.table("users").select("*").eq("user_id", user.father_id).eq("user_type", "father").execute()
         if not father_response.data:
             raise HTTPException(status_code=400, detail="존재하지 않는 아버지 ID입니다")
     
@@ -163,7 +163,7 @@ async def register(user: UserCreate):
         "father_id": user.father_id
     }
     
-    response = supabase.table("advice_app.users").insert(user_data).execute()
+    response = supabase.table("users").insert(user_data).execute()
     
     if not response.data:
         raise HTTPException(status_code=500, detail="사용자 생성에 실패했습니다")
@@ -179,7 +179,7 @@ async def register(user: UserCreate):
 @app.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
     # 사용자 조회
-    response = supabase.table("advice_app.users").select("*").eq("user_id", user_credentials.user_id).execute()
+    response = supabase.table("users").select("*").eq("user_id", user_credentials.user_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=401, detail="잘못된 사용자 ID 또는 비밀번호입니다")
@@ -217,7 +217,7 @@ async def create_advice(
         "is_read": False,
         "is_favorite": False
     }
-    response = supabase.table("advice_app.advices").insert(advice_data).execute()
+    response = supabase.table("advices").insert(advice_data).execute()
     if not response.data:
         raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
     return AdviceResponse(**response.data[0])
@@ -228,7 +228,7 @@ async def get_advices(
     category: Optional[str] = None,
     target_age: Optional[int] = None
 ):
-    query = supabase.table("advice_app.advices")
+    query = supabase.table("advices")
     if current_user.user_type == "father":
         query = query.eq("author_id", current_user.user_id)
     else:
@@ -264,7 +264,7 @@ async def mark_advice_as_read(
     current_user: UserResponse = Depends(get_current_user)
 ):
     # 조언 조회
-    response = supabase.table("advice_app.advices").select("*").eq("id", advice_id).execute()
+    response = supabase.table("advices").select("*").eq("id", advice_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
@@ -280,7 +280,7 @@ async def mark_advice_as_read(
             raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
     
     # 읽음 상태 업데이트
-    update_response = supabase.table("advice_app.advices").update({"is_read": True}).eq("id", advice_id).execute()
+    update_response = supabase.table("advices").update({"is_read": True}).eq("id", advice_id).execute()
     
     if not update_response.data:
         raise HTTPException(status_code=500, detail="상태 업데이트에 실패했습니다")
@@ -293,7 +293,7 @@ async def toggle_advice_favorite(
     current_user: UserResponse = Depends(get_current_user)
 ):
     # 조언 조회
-    response = supabase.table("advice_app.advices").select("*").eq("id", advice_id).execute()
+    response = supabase.table("advices").select("*").eq("id", advice_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
@@ -309,7 +309,7 @@ async def toggle_advice_favorite(
     
     # 즐겨찾기 상태 토글
     new_favorite_state = not advice["is_favorite"]
-    update_response = supabase.table("advice_app.advices").update({"is_favorite": new_favorite_state}).eq("id", advice_id).execute()
+    update_response = supabase.table("advices").update({"is_favorite": new_favorite_state}).eq("id", advice_id).execute()
     
     if not update_response.data:
         raise HTTPException(status_code=500, detail="상태 업데이트에 실패했습니다")
@@ -320,7 +320,7 @@ async def toggle_advice_favorite(
 async def get_stats(current_user: UserResponse = Depends(get_current_user)):
     if current_user.user_type == "father":
         # 아버지 통계
-        response = supabase.table("advice_app.advices").select("*").eq("author_id", current_user.user_id).execute()
+        response = supabase.table("advices").select("*").eq("author_id", current_user.user_id).execute()
         advices = response.data
         
         return {
@@ -330,7 +330,7 @@ async def get_stats(current_user: UserResponse = Depends(get_current_user)):
         }
     else:
         # 자녀 통계
-        response = supabase.table("advice_app.advices").select("*").eq("author_id", current_user.father_id).execute()
+        response = supabase.table("advices").select("*").eq("author_id", current_user.father_id).execute()
         advices = response.data
         
         # 현재 나이 (임시로 25세 설정)
