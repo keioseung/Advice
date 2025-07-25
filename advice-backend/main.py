@@ -27,7 +27,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://advice-app-frontend.vercel.app",
-        "https://mmo-production-34bc.up.railway.app"
+        "https://mmo-production-34bc.up.railway.app",
+        "https://advice-production-d210.up.railway.app"
     ],
     allow_origin_regex="https://.*\\.up\\.railway\\.app",
     allow_credentials=True,
