@@ -69,6 +69,7 @@ class UserResponse(BaseModel):
     updated_at: str
 
 class AdviceCreate(BaseModel):
+    author_id: str  # 프론트에서 직접 전달
     category: str
     target_age: int
     content: str
@@ -202,74 +203,34 @@ async def get_current_user_info(current_user: UserResponse = Depends(get_current
     return current_user
 
 @app.post("/advices", response_model=AdviceResponse)
-async def create_advice(
-    advice: AdviceCreate,
-    current_user: UserResponse = Depends(get_current_user)
-):
-    if current_user.user_type != "father":
-        raise HTTPException(status_code=403, detail="아버지만 조언을 작성할 수 있습니다")
-    
+async def create_advice(advice: AdviceCreate):
     advice_data = {
-        "author_id": current_user.user_id,
+        "author_id": advice.author_id,
         "category": advice.category,
         "target_age": advice.target_age,
         "content": advice.content,
         "is_read": False,
         "is_favorite": False
     }
-    
     response = supabase.table("advice_app.advices").insert(advice_data).execute()
-    
     if not response.data:
         raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
-    
     return AdviceResponse(**response.data[0])
 
 @app.get("/advices", response_model=List[AdviceResponse])
-async def get_advices(
-    current_user: UserResponse = Depends(get_current_user),
-    category: Optional[str] = None,
-    target_age: Optional[int] = None
-):
+async def get_advices(author_id: Optional[str] = None):
     query = supabase.table("advice_app.advices")
-    
-    if current_user.user_type == "father":
-        # 아버지는 자신이 작성한 조언만 조회
-        query = query.eq("author_id", current_user.user_id)
-    else:
-        # 자녀는 아버지의 조언을 조회
-        query = query.eq("author_id", current_user.father_id)
-    
-    if category:
-        query = query.eq("category", category)
-    
-    if target_age:
-        query = query.eq("target_age", target_age)
-    
+    if author_id:
+        query = query.eq("author_id", author_id)
     response = query.order("created_at", desc=True).execute()
-    
     return [AdviceResponse(**advice) for advice in response.data]
 
 @app.get("/advices/{advice_id}", response_model=AdviceResponse)
-async def get_advice(
-    advice_id: str,
-    current_user: UserResponse = Depends(get_current_user)
-):
+async def get_advice(advice_id: str):
     response = supabase.table("advice_app.advices").select("*").eq("id", advice_id).execute()
-    
     if not response.data:
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
-    
     advice = response.data[0]
-    
-    # 권한 확인
-    if current_user.user_type == "father":
-        if advice["author_id"] != current_user.user_id:
-            raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
-    else:
-        if advice["author_id"] != current_user.father_id:
-            raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
-    
     return AdviceResponse(**advice)
 
 @app.put("/advices/{advice_id}/read")
