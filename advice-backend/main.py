@@ -9,6 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from config import settings
 
 load_dotenv()
 
@@ -21,22 +22,16 @@ app = FastAPI(
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://advice-app-frontend.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Supabase 설정
-supabase_url = "https://xazsbitfnpmfranrgfjw.supabase.co"
-supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhenNiaXRmbnBtZnJhbnJnZmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxNzE2NTYsImV4cCI6MjA2ODc0NzY1Nn0.NbnAlc6tktJYCOnHAWK9w321Xs9j1nhDAatyCUMrOEw"
-supabase: Client = create_client(supabase_url, supabase_key)
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 # 보안 설정
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
@@ -98,7 +93,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserResponse:
@@ -108,7 +103,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(credentials.credentials, settings.SECRET_KEY, algorithms=["HS256"])
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
@@ -137,6 +132,12 @@ async def register(user: UserCreate):
     if response.data:
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자 ID입니다")
     
+    # 자녀인 경우 아버지 ID 확인
+    if user.user_type == "child" and user.father_id:
+        father_response = supabase.table("advice_app.users").select("*").eq("user_id", user.father_id).eq("user_type", "father").execute()
+        if not father_response.data:
+            raise HTTPException(status_code=400, detail="존재하지 않는 아버지 ID입니다")
+    
     # 비밀번호 해시화
     hashed_password = get_password_hash(user.password)
     
@@ -155,7 +156,7 @@ async def register(user: UserCreate):
         raise HTTPException(status_code=500, detail="사용자 생성에 실패했습니다")
     
     # 토큰 생성
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.user_id}, expires_delta=access_token_expires
     )
@@ -177,7 +178,7 @@ async def login(user_credentials: UserLogin):
         raise HTTPException(status_code=401, detail="잘못된 사용자 ID 또는 비밀번호입니다")
     
     # 토큰 생성
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user_data["user_id"]}, expires_delta=access_token_expires
     )
@@ -350,4 +351,4 @@ async def get_stats(current_user: UserResponse = Depends(get_current_user)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8001) 
