@@ -335,21 +335,12 @@ async def get_advices(
                         # 다시 공백 제거
                         cleaned_url = cleaned_url.strip()
                         
-                                                 # 슬래시 정리 (4개가 되지 않도록)
-                         if '/advice-media/' in cleaned_url:
-                             # 먼저 모든 슬래시를 1개로 정리
-                             cleaned_url = cleaned_url.replace('/advice-media//', '/advice-media/')
-                             # 그 다음 2개로 변경
-                             cleaned_url = cleaned_url.replace('/advice-media/', '/advice-media//')
-                             print(f"Fixed URL to proper double slash format: {cleaned_url}")
-                        
                         if cleaned_url != original_url:
                             advice['media_url'] = cleaned_url
                             print(f"Cleaned media_url: {original_url} -> {cleaned_url}")
                         else:
                             print(f"Media URL already clean: {original_url}")
                         print(f"Final URL ends with semicolon: {cleaned_url.endswith(';')}")
-                        print(f"Final URL has double slash: {'//' in cleaned_url.split('/advice-media/')[1] if '/advice-media/' in cleaned_url else 'N/A'}")
                 
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
@@ -375,24 +366,15 @@ async def get_advice(
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
     advice = response.data[0]
     
-            # media_url 정리 (슬래시 2개 형식으로 수정)
-        if advice.get('media_url'):
-            original_url = advice['media_url']
-            cleaned_url = original_url.strip()
-            # 세미콜론 제거
-            while cleaned_url.endswith(';'):
-                cleaned_url = cleaned_url[:-1]
-            cleaned_url = cleaned_url.strip()
-            
-            # 슬래시 정리 (4개가 되지 않도록)
-            if '/advice-media/' in cleaned_url:
-                # 먼저 모든 슬래시를 1개로 정리
-                cleaned_url = cleaned_url.replace('/advice-media//', '/advice-media/')
-                # 그 다음 2개로 변경
-                cleaned_url = cleaned_url.replace('/advice-media/', '/advice-media//')
-                print(f"Fixed URL to proper double slash format: {cleaned_url}")
-            
-            advice['media_url'] = cleaned_url
+    # media_url 정리 (세미콜론 제거만)
+    if advice.get('media_url'):
+        original_url = advice['media_url']
+        cleaned_url = original_url.strip()
+        # 세미콜론 제거
+        while cleaned_url.endswith(';'):
+            cleaned_url = cleaned_url[:-1]
+        cleaned_url = cleaned_url.strip()
+        advice['media_url'] = cleaned_url
     
     # 권한 확인
     if current_user.user_type == "father":
@@ -524,7 +506,7 @@ async def upload_media(
                 media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
                 print(f"Manually created URL: {media_url}")
             
-            # URL 정리 (세미콜론 및 공백 제거)
+            # URL 정리 (세미콜론 및 공백 제거만)
             if media_url:
                 media_url = media_url.strip()
                 # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
@@ -532,17 +514,8 @@ async def upload_media(
                     media_url = media_url[:-1]
                 media_url = media_url.strip()
                 
-                # 슬래시 정리 (4개가 되지 않도록)
-                if '/advice-media/' in media_url:
-                    # 먼저 모든 슬래시를 1개로 정리
-                    media_url = media_url.replace('/advice-media//', '/advice-media/')
-                    # 그 다음 2개로 변경
-                    media_url = media_url.replace('/advice-media/', '/advice-media//')
-                    print(f"Fixed URL to proper double slash format: {media_url}")
-                
                 print(f"Cleaned media_url: {media_url}")
                 print(f"URL ends with semicolon: {media_url.endswith(';')}")
-                print(f"URL has double slash: {'//' in media_url.split('/advice-media/')[1] if '/advice-media/' in media_url else 'N/A'}")
             
             media_type = "image" if file.content_type.startswith("image/") else "video"
             
