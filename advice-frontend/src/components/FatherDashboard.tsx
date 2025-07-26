@@ -9,7 +9,9 @@ import {
   Heart, 
   BookOpen, 
   Star,
-  Filter
+  Filter,
+  User,
+  Users
 } from 'lucide-react'
 import AdviceForm from './AdviceForm'
 import AdviceCard from './AdviceCard'
@@ -25,6 +27,9 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
   const [filter, setFilter] = useState('all')
   const [selectedAdvice, setSelectedAdvice] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
+  const [fatherName, setFatherName] = useState('')
+  const [childName, setChildName] = useState('')
+  const [showNameInput, setShowNameInput] = useState(true)
 
   // 샘플 데이터
   useEffect(() => {
@@ -35,7 +40,6 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         target_age: 20,
         content: '인생은 마라톤이야. 너무 서두르지 말고, 자신만의 페이스를 찾아가렴. 남과 비교하지 말고, 어제의 너보다 나은 오늘의 네가 되기 위해 노력해.',
         date: '2024-01-15',
-        is_read: false,
         is_favorite: false,
         author: user.user_id
       },
@@ -45,7 +49,6 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         target_age: 25,
         content: '진정한 사랑은 상대방을 있는 그대로 받아들이는 것이야. 너를 변화시키려 하는 사람보다는, 너의 성장을 응원해주는 사람을 만나길 바란다.',
         date: '2024-02-20',
-        is_read: true,
         is_favorite: true,
         author: user.user_id
       },
@@ -55,7 +58,6 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         target_age: 22,
         content: '첫 직장은 완벽할 필요 없어. 중요한 건 그곳에서 무엇을 배우고, 어떤 사람이 될 것인가야. 실수를 두려워하지 말고, 항상 배우려는 자세를 가져.',
         date: '2024-03-10',
-        is_read: false,
         is_favorite: false,
         author: user.user_id
       }
@@ -68,7 +70,6 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       ...newAdvice,
       id: Date.now(),
       date: new Date().toLocaleDateString('ko-KR'),
-      is_read: false,
       is_favorite: false,
       author: user.user_id
     }
@@ -94,7 +95,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
             안녕하세요, {user.name}님! 👨‍👦
           </h2>
           <p className="text-white/80">
-            아이를 위한 특별한 조언을 작성해보세요
+            {childName ? `${childName}을(를) 위한 특별한 조언을 작성해보세요` : '아이를 위한 특별한 조언을 작성해보세요'}
           </p>
         </div>
         <button
@@ -106,7 +107,55 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         </button>
       </div>
 
-
+      {/* Name Input Section */}
+      {showNameInput && (
+        <motion.div 
+          className="glass-effect rounded-2xl p-6 bg-gradient-to-r from-blue-100 to-purple-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">
+              가족 정보를 입력해주세요 💝
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-gray-700 font-medium">
+                  <User className="w-4 h-4" />
+                  아버지 이름
+                </label>
+                <input
+                  type="text"
+                  value={fatherName}
+                  onChange={(e) => setFatherName(e.target.value)}
+                  placeholder="아버지 이름"
+                  className="input-field w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-gray-700 font-medium">
+                  <Users className="w-4 h-4" />
+                  자녀 이름
+                </label>
+                <input
+                  type="text"
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="자녀 이름"
+                  className="input-field w-full"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => setShowNameInput(false)}
+              disabled={!fatherName.trim() || !childName.trim()}
+              className="btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              확인
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-8">

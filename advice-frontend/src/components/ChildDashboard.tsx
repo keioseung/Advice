@@ -40,7 +40,6 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         target_age: 20,
         content: '인생은 마라톤이야. 너무 서두르지 말고, 자신만의 페이스를 찾아가렴. 남과 비교하지 말고, 어제의 너보다 나은 오늘의 네가 되기 위해 노력해.',
         date: '2024-01-15',
-        is_read: false,
         is_favorite: false,
         author: 'dad',
         media_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
@@ -52,7 +51,6 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         target_age: 25,
         content: '진정한 사랑은 상대방을 있는 그대로 받아들이는 것이야. 너를 변화시키려 하는 사람보다는, 너의 성장을 응원해주는 사람을 만나길 바란다.',
         date: '2024-02-20',
-        is_read: true,
         is_favorite: true,
         author: 'dad'
       },
@@ -62,7 +60,6 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         target_age: 30,
         content: '30대가 되면 인생의 방향이 더욱 명확해질 거야. 지금까지의 경험을 바탕으로 자신만의 길을 찾아가길 바란다.',
         date: '2024-03-10',
-        is_read: false,
         is_favorite: false,
         author: 'dad',
         media_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
@@ -73,10 +70,6 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   }, [])
 
   const handleAdviceClick = (advice: any) => {
-    // 조언을 읽음으로 표시
-    setAdvices(prev => prev.map(a => 
-      a.id === advice.id ? { ...a, is_read: true } : a
-    ))
     setSelectedAdvice(advice)
     setShowModal(true)
   }
@@ -104,16 +97,26 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
     }
   }
 
+  // 패스워드로 잠긴 미래 조언은 숨기고, 해제된 조언만 보여주기
   const filteredAdvices = advices.filter(advice => {
-    if (filter === 'available') return advice.target_age <= currentAge || unlockedAdvices.includes(advice.id)
-    if (filter === 'future') return advice.target_age > currentAge && !unlockedAdvices.includes(advice.id)
-    if (filter === 'favorites') return advice.is_favorite
+    if (filter === 'available') {
+      // 현재 나이에 읽을 수 있거나 해제된 조언만
+      return advice.target_age <= currentAge || unlockedAdvices.includes(advice.id)
+    }
+    if (filter === 'future') {
+      // 미래 조언 중에서 해제된 것만 보여주기
+      return advice.target_age > currentAge && unlockedAdvices.includes(advice.id)
+    }
+    if (filter === 'favorites') {
+      // 즐겨찾기 중에서 현재 읽을 수 있거나 해제된 것만
+      return advice.is_favorite && (advice.target_age <= currentAge || unlockedAdvices.includes(advice.id))
+    }
     return true
   })
 
   const availableAdvices = advices.filter(a => a.target_age <= currentAge)
-  const futureAdvices = advices.filter(a => a.target_age > currentAge)
-  const favoriteAdvices = advices.filter(a => a.is_favorite)
+  const unlockedFutureAdvices = advices.filter(a => a.target_age > currentAge && unlockedAdvices.includes(a.id))
+  const favoriteAdvices = advices.filter(a => a.is_favorite && (a.target_age <= currentAge || unlockedAdvices.includes(a.id)))
 
   return (
     <div className="space-y-8">
@@ -182,7 +185,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
               {user.name}의 특별한 메시지
             </h3>
             <p className="text-gray-600">
-              현재 {currentAge}세, {availableAdvices.length}개의 조언을 읽을 수 있어요!
+              현재 {currentAge}세, {availableAdvices.length}개의 글귀를 읽을 수 있어요!
             </p>
           </div>
         </div>
@@ -204,8 +207,8 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
           whileHover={{ scale: 1.05 }}
         >
           <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{futureAdvices.length}</div>
-          <div className="text-sm text-gray-600">미래의 글귀</div>
+          <div className="text-2xl font-bold text-gray-800">{unlockedFutureAdvices.length}</div>
+          <div className="text-sm text-gray-600">해제된 미래 글귀</div>
         </motion.div>
         
         <motion.div 
@@ -222,7 +225,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
       <div className="flex gap-2 flex-wrap">
         {[
           { key: 'available', label: '💝 지금 읽을 수 있는 글귀', icon: Heart },
-          { key: 'future', label: '🔒 미래의 글귀', icon: Lock },
+          { key: 'future', label: '🔓 해제된 미래 글귀', icon: Lock },
           { key: 'favorites', label: '⭐ 마음에 든 글귀', icon: Star }
         ].map(({ key, label, icon: Icon }) => (
           <button
@@ -245,7 +248,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">
             {filter === 'available' && '💝 지금 읽을 수 있는 글귀'}
-            {filter === 'future' && '🔒 미래의 글귀'}
+            {filter === 'future' && '🔓 해제된 미래 글귀'}
             {filter === 'favorites' && '⭐ 마음에 든 글귀'}
           </h3>
           <Filter className="w-5 h-5 text-gray-500" />
@@ -256,13 +259,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
             <AdviceCard
               key={advice.id}
               advice={advice}
-              onClick={() => {
-                if (filter === 'future') {
-                  handleFutureAdviceClick(advice)
-                } else {
-                  handleAdviceClick(advice)
-                }
-              }}
+              onClick={() => handleAdviceClick(advice)}
               userType="child"
               onToggleFavorite={() => handleToggleFavorite(advice.id)}
             />
@@ -271,7 +268,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
           {filteredAdvices.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               {filter === 'available' && '아직 읽을 수 있는 글귀가 없어요 😊'}
-              {filter === 'future' && '미래의 글귀가 없어요 🌟'}
+              {filter === 'future' && '해제된 미래 글귀가 없어요 🔒'}
               {filter === 'favorites' && '마음에 든 글귀가 없어요 ⭐'}
             </div>
           )}

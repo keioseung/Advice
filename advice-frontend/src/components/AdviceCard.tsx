@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Star, Eye, EyeOff, Calendar, User, Image, Video, Play } from 'lucide-react'
+import { Star, Calendar, User, Image, Video } from 'lucide-react'
 
 interface AdviceCardProps {
   advice: any
@@ -119,22 +119,6 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
         </div>
         
         <div className="flex items-center gap-2">
-          {userType === 'father' && (
-            <div className="flex items-center gap-1">
-              {advice.is_read ? (
-                <>
-                  <Eye className="w-4 h-4 text-green-500" />
-                  <span className="text-green-600">읽음</span>
-                </>
-              ) : (
-                <>
-                  <EyeOff className="w-4 h-4 text-orange-500" />
-                  <span className="text-orange-600">안읽음</span>
-                </>
-              )}
-            </div>
-          )}
-          
           {userType === 'child' && advice.is_favorite && (
             <div className="flex items-center gap-1 text-yellow-600">
               <Star className="w-4 h-4" />
