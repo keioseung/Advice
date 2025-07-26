@@ -237,14 +237,19 @@ async def create_advice(
         response = supabase.table("advices").insert(advice_data).execute()
         print(f"Supabase response: {response}")  # 디버깅용 로그
         print(f"Response data: {response.data}")  # 디버깅용 로그
-        print(f"Response error: {response.error}")  # 디버깅용 로그
         
-        if response.error:
+        # Supabase 응답 구조 확인
+        if hasattr(response, 'error') and response.error:
             print(f"Supabase error: {response.error}")  # 디버깅용 로그
             raise HTTPException(status_code=500, detail=f"Supabase 오류: {response.error}")
-            
-        if not response.data:
+        
+        # 응답에 오류가 있는지 확인 (다른 방식)
+        if hasattr(response, 'data') and response.data is None:
             print(f"No data in response")  # 디버깅용 로그
+            raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
+            
+        if not response.data or len(response.data) == 0:
+            print(f"Empty data in response")  # 디버깅용 로그
             raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
             
         return AdviceResponse(**response.data[0])
