@@ -35,42 +35,32 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   const [selectedFutureAdvice, setSelectedFutureAdvice] = useState<any>(null)
   const [password, setPassword] = useState('')
 
-  // 샘플 데이터
+  // 실제 API에서 조언 데이터 가져오기
   useEffect(() => {
-    const sampleAdvices = [
-      {
-        id: 1,
-        category: 'life',
-        target_age: 20,
-        content: '인생은 마라톤이야. 너무 서두르지 말고, 자신만의 페이스를 찾아가렴. 남과 비교하지 말고, 어제의 너보다 나은 오늘의 네가 되기 위해 노력해.',
-        date: '2024-01-15',
-        is_favorite: false,
-        author: 'dad',
-        media_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-        media_type: 'image'
-      },
-      {
-        id: 2,
-        category: 'love',
-        target_age: 25,
-        content: '진정한 사랑은 상대방을 있는 그대로 받아들이는 것이야. 너를 변화시키려 하는 사람보다는, 너의 성장을 응원해주는 사람을 만나길 바란다.',
-        date: '2024-02-20',
-        is_favorite: true,
-        author: 'dad'
-      },
-      {
-        id: 3,
-        category: 'career',
-        target_age: 30,
-        content: '30대가 되면 인생의 방향이 더욱 명확해질 거야. 지금까지의 경험을 바탕으로 자신만의 길을 찾아가길 바란다.',
-        date: '2024-03-10',
-        is_favorite: false,
-        author: 'dad',
-        media_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-        media_type: 'video'
+    const fetchAdvices = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setAdvices(data)
+        } else {
+          console.error('조언을 가져오는데 실패했습니다:', response.status)
+        }
+      } catch (error) {
+        console.error('조언을 가져오는 중 오류 발생:', error)
       }
-    ]
-    setAdvices(sampleAdvices)
+    }
+
+    fetchAdvices()
   }, [])
 
   const handleAdviceClick = (advice: any) => {

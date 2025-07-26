@@ -75,6 +75,8 @@ class AdviceCreate(BaseModel):
     content: str
     media_url: Optional[str] = None
     media_type: Optional[str] = None
+    unlockType: Optional[str] = 'age'
+    password: Optional[str] = None
 
 class AdviceResponse(BaseModel):
     id: str
@@ -84,6 +86,8 @@ class AdviceResponse(BaseModel):
     content: str
     media_url: Optional[str] = None
     media_type: Optional[str] = None
+    unlock_type: Optional[str] = 'age'
+    password: Optional[str] = None
     is_read: bool
     is_favorite: bool
     created_at: str
@@ -220,6 +224,8 @@ async def create_advice(
         "content": advice.content,
         "media_url": advice.media_url,
         "media_type": advice.media_type,
+        "unlock_type": advice.unlockType,
+        "password": advice.password,
         "is_read": False,
         "is_favorite": False
     }

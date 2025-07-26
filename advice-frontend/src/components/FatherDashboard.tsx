@@ -31,49 +31,88 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
   const [childName, setChildName] = useState('')
   const [showNameInput, setShowNameInput] = useState(true)
 
-  // 샘플 데이터
+  // 실제 API에서 조언 데이터 가져오기
   useEffect(() => {
-    const sampleAdvices = [
-      {
-        id: 1,
-        category: 'life',
-        target_age: 20,
-        content: '인생은 마라톤이야. 너무 서두르지 말고, 자신만의 페이스를 찾아가렴. 남과 비교하지 말고, 어제의 너보다 나은 오늘의 네가 되기 위해 노력해.',
-        date: '2024-01-15',
-        is_favorite: false,
-        author: user.user_id
-      },
-      {
-        id: 2,
-        category: 'love',
-        target_age: 25,
-        content: '진정한 사랑은 상대방을 있는 그대로 받아들이는 것이야. 너를 변화시키려 하는 사람보다는, 너의 성장을 응원해주는 사람을 만나길 바란다.',
-        date: '2024-02-20',
-        is_favorite: true,
-        author: user.user_id
-      },
-      {
-        id: 3,
-        category: 'career',
-        target_age: 22,
-        content: '첫 직장은 완벽할 필요 없어. 중요한 건 그곳에서 무엇을 배우고, 어떤 사람이 될 것인가야. 실수를 두려워하지 말고, 항상 배우려는 자세를 가져.',
-        date: '2024-03-10',
-        is_favorite: false,
-        author: user.user_id
-      }
-    ]
-    setAdvices(sampleAdvices)
-  }, [user.user_id])
+    const fetchAdvices = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
 
-  const handleAddAdvice = (newAdvice: any) => {
-    const advice = {
-      ...newAdvice,
-      id: Date.now(),
-      date: new Date().toLocaleDateString('ko-KR'),
-      is_favorite: false,
-      author: user.user_id
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setAdvices(data)
+        } else {
+          console.error('조언을 가져오는데 실패했습니다:', response.status)
+        }
+      } catch (error) {
+        console.error('조언을 가져오는 중 오류 발생:', error)
+      }
     }
-    setAdvices([advice, ...advices])
+
+    fetchAdvices()
+  }, [])
+
+  const handleAddAdvice = async (newAdvice: any) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      // 미디어 파일이 있는 경우 먼저 업로드
+      let mediaUrl = newAdvice.media_url
+      if (newAdvice.mediaFile) {
+        const formData = new FormData()
+        formData.append('file', newAdvice.mediaFile)
+        
+        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload-media`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        })
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json()
+          mediaUrl = uploadData.url
+        }
+      }
+
+      // 조언 생성
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          category: newAdvice.category,
+          target_age: newAdvice.target_age,
+          content: newAdvice.content,
+          media_url: mediaUrl,
+          media_type: newAdvice.mediaType,
+          unlockType: newAdvice.unlockType,
+          password: newAdvice.password
+        })
+      })
+
+      if (response.ok) {
+        const createdAdvice = await response.json()
+        setAdvices([createdAdvice, ...advices])
+      } else {
+        console.error('조언 생성에 실패했습니다:', response.status)
+        alert('조언 생성에 실패했습니다. 다시 시도해주세요.')
+      }
+    } catch (error) {
+      console.error('조언 생성 중 오류 발생:', error)
+      alert('조언 생성 중 오류가 발생했습니다. 다시 시도해주세요.')
+    }
   }
 
   const handleAdviceClick = (advice: any) => {
