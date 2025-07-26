@@ -41,7 +41,12 @@ export default function AuthSection({ onLogin }: AuthSectionProps) {
 
       if (response.ok) {
         const data = await response.json()
-        onLogin(data)
+        // user_type을 명시적으로 추가
+        const userData = {
+          ...data,
+          user_type: userType
+        }
+        onLogin(userData)
       } else {
         const errorData = await response.json()
         setError(errorData.detail || '로그인에 실패했습니다.')
