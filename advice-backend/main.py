@@ -443,6 +443,71 @@ async def toggle_advice_favorite(
     
     return {"message": f"즐겨찾기를 {'추가' if new_favorite_state else '제거'}했습니다"}
 
+@app.put("/advices/{advice_id}")
+async def update_advice(
+    advice_id: str,
+    advice_update: AdviceCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    # 아버지만 수정 가능
+    if current_user.user_type != "father":
+        raise HTTPException(status_code=403, detail="아버지만 조언을 수정할 수 있습니다")
+    
+    # 조언 조회
+    response = supabase.table("advices").select("*").eq("id", advice_id).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
+    advice = response.data[0]
+    
+    # 권한 확인
+    if advice["author_id"] != current_user.user_id:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
+    
+    # 조언 업데이트
+    update_data = {
+        "category": advice_update.category,
+        "target_age": advice_update.target_age,
+        "content": advice_update.content,
+        "media_url": advice_update.media_url,
+        "media_type": advice_update.media_type,
+        "unlock_type": advice_update.unlockType,
+        "password": advice_update.password
+    }
+    
+    try:
+        response = supabase.table("advices").update(update_data).eq("id", advice_id).execute()
+        if not response.data:
+            raise HTTPException(status_code=500, detail="조언 수정에 실패했습니다")
+        return AdviceResponse(**response.data[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"조언 수정 중 오류 발생: {str(e)}")
+
+@app.delete("/advices/{advice_id}")
+async def delete_advice(
+    advice_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    # 아버지만 삭제 가능
+    if current_user.user_type != "father":
+        raise HTTPException(status_code=403, detail="아버지만 조언을 삭제할 수 있습니다")
+    
+    # 조언 조회
+    response = supabase.table("advices").select("*").eq("id", advice_id).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
+    advice = response.data[0]
+    
+    # 권한 확인
+    if advice["author_id"] != current_user.user_id:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
+    
+    # 조언 삭제
+    try:
+        supabase.table("advices").delete().eq("id", advice_id).execute()
+        return {"message": "조언이 성공적으로 삭제되었습니다"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"조언 삭제 중 오류 발생: {str(e)}")
+
 @app.get("/stats")
 async def get_stats(current_user: UserResponse = Depends(get_current_user)):
     if current_user.user_type == "father":
