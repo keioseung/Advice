@@ -95,6 +95,8 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       }
       
       console.log('Sending advice data:', adviceData)  // 디버깅용 로그
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)  // 디버깅용 로그
+      console.log('Token:', token ? 'Present' : 'Missing')  // 디버깅용 로그
       
       // 조언 생성
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
@@ -105,6 +107,9 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         },
         body: JSON.stringify(adviceData)
       })
+      
+      console.log('Response status:', response.status)  // 디버깅용 로그
+      console.log('Response headers:', response.headers)  // 디버깅용 로그
 
       if (response.ok) {
         const createdAdvice = await response.json()

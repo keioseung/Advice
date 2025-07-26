@@ -233,12 +233,24 @@ async def create_advice(
         "is_favorite": False
     }
     print(f"Creating advice with data: {advice_data}")  # 디버깅용 로그
-    response = supabase.table("advices").insert(advice_data).execute()
-    print(f"Supabase response: {response}")  # 디버깅용 로그
-    if not response.data:
-        print(f"Error response: {response.error}")  # 디버깅용 로그
-        raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
-    return AdviceResponse(**response.data[0])
+    try:
+        response = supabase.table("advices").insert(advice_data).execute()
+        print(f"Supabase response: {response}")  # 디버깅용 로그
+        print(f"Response data: {response.data}")  # 디버깅용 로그
+        print(f"Response error: {response.error}")  # 디버깅용 로그
+        
+        if response.error:
+            print(f"Supabase error: {response.error}")  # 디버깅용 로그
+            raise HTTPException(status_code=500, detail=f"Supabase 오류: {response.error}")
+            
+        if not response.data:
+            print(f"No data in response")  # 디버깅용 로그
+            raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
+            
+        return AdviceResponse(**response.data[0])
+    except Exception as e:
+        print(f"Exception during advice creation: {str(e)}")  # 디버깅용 로그
+        raise HTTPException(status_code=500, detail=f"조언 생성 중 오류 발생: {str(e)}")
 
 @app.get("/advices", response_model=List[AdviceResponse])
 async def get_advices(
@@ -265,7 +277,7 @@ async def get_advice(
     advice_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    response = supabase.table("advice_app.advices").select("*").eq("id", advice_id).execute()
+    response = supabase.table("advices").select("*").eq("id", advice_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
     advice = response.data[0]
