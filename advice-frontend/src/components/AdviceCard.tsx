@@ -49,9 +49,11 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
     while (cleanedUrl.endsWith(';')) {
       cleanedUrl = cleanedUrl.slice(0, -1);
     }
-    // 강제로 슬래시 2개 형식으로 수정
+    // 슬래시 정리 (4개가 되지 않도록)
     if (cleanedUrl.includes('/advice-media/')) {
-      // 슬래시 1개를 2개로 강제 변경
+      // 먼저 모든 슬래시를 1개로 정리
+      cleanedUrl = cleanedUrl.replace('/advice-media//', '/advice-media/');
+      // 그 다음 2개로 변경
       cleanedUrl = cleanedUrl.replace('/advice-media/', '/advice-media//');
     }
     return cleanedUrl.trim();

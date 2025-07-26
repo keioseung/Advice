@@ -111,11 +111,13 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
               mediaUrl = mediaUrl.slice(0, -1)
             }
             
-            // 강제로 슬래시 2개 형식으로 수정
+            // 슬래시 정리 (4개가 되지 않도록)
             if (mediaUrl.includes('/advice-media/')) {
-              // 슬래시 1개를 2개로 강제 변경
+              // 먼저 모든 슬래시를 1개로 정리
+              mediaUrl = mediaUrl.replace('/advice-media//', '/advice-media/')
+              // 그 다음 2개로 변경
               mediaUrl = mediaUrl.replace('/advice-media/', '/advice-media//')
-              console.log('Force fixed URL to double slash format:', mediaUrl)
+              console.log('Fixed URL to proper double slash format:', mediaUrl)
             }
             
             // 다시 공백 제거
