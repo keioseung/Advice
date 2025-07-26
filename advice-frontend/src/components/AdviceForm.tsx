@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Send, Heart, BookOpen, DollarSign, Users, GraduationCap, Palette, Target, Image, Video, X } from 'lucide-react'
+import { Send, Heart, BookOpen, DollarSign, Users, GraduationCap, Palette, Target, Image, Video, X, Lock, Calendar, Key } from 'lucide-react'
 
 interface AdviceFormProps {
   onAddAdvice: (advice: any) => void
@@ -27,6 +27,8 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
   const [mediaFile, setMediaFile] = useState<File | null>(null)
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
+  const [unlockType, setUnlockType] = useState<'age' | 'password'>('age')
+  const [password, setPassword] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +73,9 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
       target_age: parseInt(targetAge),
       content: content.trim(),
       mediaFile,
-      mediaType
+      mediaType,
+      unlockType,
+      password: unlockType === 'password' ? password : null
     }
 
     onAddAdvice(newAdvice)
@@ -82,6 +86,7 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
     setMediaFile(null)
     setMediaPreview(null)
     setMediaType(null)
+    setPassword('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -151,6 +156,71 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
             placeholder="아이에게 전하고 싶은 마음을 적어보세요..."
             required
           />
+        </div>
+
+        {/* Future Advice Settings */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            🔒 미래 조언 설정
+          </label>
+          <div className="space-y-4">
+            {/* Unlock Type Selection */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setUnlockType('age')}
+                className={`p-3 rounded-xl text-sm transition-all duration-300 flex items-center gap-2 ${
+                  unlockType === 'age'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/70'
+                }`}
+              >
+                <Calendar className="w-4 h-4" />
+                나이 기반 자동 해제
+              </button>
+              <button
+                type="button"
+                onClick={() => setUnlockType('password')}
+                className={`p-3 rounded-xl text-sm transition-all duration-300 flex items-center gap-2 ${
+                  unlockType === 'password'
+                    ? 'bg-purple-500 text-white shadow-lg'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/70'
+                }`}
+              >
+                <Key className="w-4 h-4" />
+                패스워드 해제
+              </button>
+            </div>
+
+            {/* Password Input */}
+            {unlockType === 'password' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  해제 패스워드
+                </label>
+                <input
+                  type="text"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field"
+                  placeholder="예: 사랑해, love, 특별한단어"
+                  required={unlockType === 'password'}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 자녀가 기억하기 쉬운 특별한 단어나 문구를 입력하세요
+                </p>
+              </div>
+            )}
+
+            {/* Age-based unlock info */}
+            {unlockType === 'age' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <p className="text-sm text-blue-700">
+                  📅 {targetAge}세가 되면 자동으로 조언을 받을 수 있어요
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Media Upload */}

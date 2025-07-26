@@ -89,8 +89,8 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   }
 
   const handlePasswordSubmit = () => {
-    // 간단한 패스워드 체크 (실제로는 더 복잡하게 구현)
-    if (password === '사랑해' || password === 'love') {
+    // 선택된 조언의 패스워드와 비교
+    if (selectedFutureAdvice && selectedFutureAdvice.password && password === selectedFutureAdvice.password) {
       setUnlockedAdvices(prev => [...prev, selectedFutureAdvice.id])
       setShowPasswordModal(false)
       setPassword('')
@@ -110,12 +110,23 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
       // 미래 조언 중에서 해제된 것만 보여주기
       return advice.target_age > currentAge && unlockedAdvices.includes(advice.id)
     }
+    if (filter === 'password') {
+      // 패스워드로 해제 가능한 미래 조언들
+      return advice.target_age > currentAge && advice.unlockType === 'password' && !unlockedAdvices.includes(advice.id)
+    }
     if (filter === 'favorites') {
       // 즐겨찾기 중에서 현재 읽을 수 있거나 해제된 것만
       return advice.is_favorite && (advice.target_age <= currentAge || unlockedAdvices.includes(advice.id))
     }
     return true
   })
+
+  // 미래 조언 중 패스워드로 해제 가능한 것들
+  const passwordLockedAdvices = advices.filter(advice => 
+    advice.target_age > currentAge && 
+    advice.unlockType === 'password' && 
+    !unlockedAdvices.includes(advice.id)
+  )
 
   const availableAdvices = advices.filter(a => a.target_age <= currentAge)
   const unlockedFutureAdvices = advices.filter(a => a.target_age > currentAge && unlockedAdvices.includes(a.id))
@@ -252,6 +263,16 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         <motion.div 
           className="glass-effect rounded-3xl p-6 text-center love-border"
           whileHover={{ scale: 1.05, y: -5 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
+          <Key className="w-10 h-10 text-purple-500 mx-auto mb-3" />
+          <div className="text-3xl font-bold text-gray-800 mb-1">{passwordLockedAdvices.length}</div>
+          <div className="text-sm text-gray-600">패스워드 해제 가능</div>
+        </motion.div>
+        
+        <motion.div 
+          className="glass-effect rounded-3xl p-6 text-center love-border"
+          whileHover={{ scale: 1.05, y: -5 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
           <Star className="w-10 h-10 text-warm-500 mx-auto mb-3" />
@@ -270,6 +291,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
         {[
           { key: 'available', label: '💝 지금 받을 수 있는 선물', icon: Heart },
           { key: 'future', label: '🔓 해제된 미래 선물', icon: Lock },
+          { key: 'password', label: '🔑 패스워드 해제', icon: Key },
           { key: 'favorites', label: '⭐ 마음에 든 선물', icon: Star }
         ].map(({ key, label, icon: Icon }) => (
           <button
@@ -299,6 +321,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
               {filter === 'available' && '💝 지금 받을 수 있는 선물'}
               {filter === 'future' && '🔓 해제된 미래 선물'}
+              {filter === 'password' && '🔑 패스워드로 해제 가능한 선물'}
               {filter === 'favorites' && '⭐ 마음에 든 선물'}
             </h3>
             <p className="text-gray-600">
@@ -337,11 +360,13 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 {filter === 'available' && '아직 받을 수 있는 선물이 없어요 😊'}
                 {filter === 'future' && '해제된 미래 선물이 없어요 🔒'}
+                {filter === 'password' && '패스워드로 해제 가능한 선물이 없어요 🔑'}
                 {filter === 'favorites' && '마음에 든 선물이 없어요 ⭐'}
               </h3>
               <p className="text-gray-600">
                 {filter === 'available' && '조금만 기다리면 아버지가 준비한 특별한 선물을 받을 수 있어요!'}
                 {filter === 'future' && '패스워드를 입력하면 미래의 선물을 미리 받을 수 있어요!'}
+                {filter === 'password' && '아버지가 설정한 패스워드를 입력하면 미래의 선물을 받을 수 있어요!'}
                 {filter === 'favorites' && '마음에 드는 선물에 별표를 눌러보세요!'}
               </p>
             </motion.div>
