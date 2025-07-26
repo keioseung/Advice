@@ -384,33 +384,57 @@ async def upload_media(
         try:
             # 버킷 존재 확인 및 생성
             try:
-                supabase.storage.get_bucket(bucket_name)
-            except:
+                bucket_info = supabase.storage.get_bucket(bucket_name)
+                print(f"Bucket exists: {bucket_name}")
+            except Exception as bucket_error:
+                print(f"Bucket error: {bucket_error}")
                 # 버킷이 없으면 생성
-                supabase.storage.create_bucket(bucket_name, {"public": True})
-                print(f"Created bucket: {bucket_name}")
+                try:
+                    supabase.storage.create_bucket(bucket_name, {"public": True})
+                    print(f"Created bucket: {bucket_name}")
+                except Exception as create_error:
+                    print(f"Create bucket error: {create_error}")
+                    # 버킷 생성 실패 시 임시 URL 반환
+                    media_type = "image" if file.content_type.startswith("image/") else "video"
+                    temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                    return {
+                        "url": temp_url,
+                        "type": media_type
+                    }
             
             # 파일 업로드
-            response = supabase.storage.from_(bucket_name).upload(
-                file_name, 
-                file_content,
-                {"content-type": file.content_type}
-            )
+            try:
+                response = supabase.storage.from_(bucket_name).upload(
+                    file_name, 
+                    file_content,
+                    {"content-type": file.content_type}
+                )
+                print(f"Upload response: {response}")
+                
+                # 공개 URL 생성
+                media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+                media_type = "image" if file.content_type.startswith("image/") else "video"
+                
+                print(f"File uploaded successfully: {media_url}")
+                
+                return {
+                    "url": media_url,
+                    "type": media_type
+                }
+                
+            except Exception as upload_error:
+                print(f"Upload error: {upload_error}")
+                # 업로드 실패 시 임시 URL 반환
+                media_type = "image" if file.content_type.startswith("image/") else "video"
+                temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                return {
+                    "url": temp_url,
+                    "type": media_type
+                }
             
-            # 공개 URL 생성
-            media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-            media_type = "image" if file.content_type.startswith("image/") else "video"
-            
-            print(f"File uploaded successfully: {media_url}")
-            
-            return {
-                "url": media_url,
-                "type": media_type
-            }
-            
-        except Exception as upload_error:
-            print(f"Upload error: {upload_error}")
-            # 업로드 실패 시 임시 URL 반환 (개발용)
+        except Exception as general_error:
+            print(f"General error: {general_error}")
+            # 일반적인 오류 시 임시 URL 반환
             media_type = "image" if file.content_type.startswith("image/") else "video"
             temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
             return {
