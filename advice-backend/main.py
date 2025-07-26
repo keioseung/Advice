@@ -261,8 +261,14 @@ async def create_advice(
         if not response.data or len(response.data) == 0:
             print(f"Empty data in response")  # 디버깅용 로그
             raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
+        
+        # 응답 데이터에서 media_url 세미콜론 제거
+        advice_data = response.data[0]
+        if advice_data.get('media_url') and advice_data['media_url'].endswith(';'):
+            advice_data['media_url'] = advice_data['media_url'][:-1]
+            print(f"Removed semicolon from response media_url: {advice_data['media_url']}")
             
-        return AdviceResponse(**response.data[0])
+        return AdviceResponse(**advice_data)
     except Exception as e:
         print(f"Exception during advice creation: {str(e)}")  # 디버깅용 로그
         raise HTTPException(status_code=500, detail=f"조언 생성 중 오류 발생: {str(e)}")
@@ -299,6 +305,11 @@ async def get_advices(
         advices = []
         for advice in response.data:
             try:
+                # media_url에서 세미콜론 제거
+                if advice.get('media_url') and advice['media_url'].endswith(';'):
+                    advice['media_url'] = advice['media_url'][:-1]
+                    print(f"Removed semicolon from advice media_url: {advice['media_url']}")
+                
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
             except Exception as e:
