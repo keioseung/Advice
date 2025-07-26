@@ -222,18 +222,19 @@ async def create_advice(
     if current_user.user_type != "father":
         raise HTTPException(status_code=403, detail="아버지만 조언을 작성할 수 있습니다")
     
-    # media_url에서 세미콜론 제거
+    # media_url에서 세미콜론 제거 (더 강력한 정리)
     media_url = advice.media_url
     if media_url:
         # 세미콜론 제거 (더 강력한 정리)
-        media_url = media_url.strip().rstrip(';').strip()
+        media_url = media_url.strip()
+        # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
+        while media_url.endswith(';'):
+            media_url = media_url[:-1]
+        media_url = media_url.strip()
+        
         print(f"Original media_url: {advice.media_url}")
         print(f"Cleaned media_url: {media_url}")
-    
-    # 최종적으로 DB에 저장하기 전에 한 번 더 확인
-    if media_url and media_url.endswith(';'):
-        media_url = media_url[:-1]
-        print(f"Final cleanup - removed semicolon: {media_url}")
+        print(f"Final URL ends with semicolon: {media_url.endswith(';')}")
     
     advice_data = {
         "author_id": current_user.user_id,
@@ -267,13 +268,19 @@ async def create_advice(
             print(f"Empty data in response")  # 디버깅용 로그
             raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
         
-        # 응답 데이터에서 media_url 세미콜론 제거
+        # 응답 데이터에서 media_url 세미콜론 제거 (최종 정리)
         advice_data = response.data[0]
         if advice_data.get('media_url'):
             original_url = advice_data['media_url']
-            if original_url.endswith(';'):
-                advice_data['media_url'] = original_url[:-1]
-                print(f"Removed semicolon from response media_url: {original_url} -> {advice_data['media_url']}")
+            # 세미콜론 제거
+            cleaned_url = original_url.strip()
+            while cleaned_url.endswith(';'):
+                cleaned_url = cleaned_url[:-1]
+            cleaned_url = cleaned_url.strip()
+            
+            if cleaned_url != original_url:
+                advice_data['media_url'] = cleaned_url
+                print(f"Removed semicolon from response media_url: {original_url} -> {cleaned_url}")
             else:
                 print(f"No semicolon found in response media_url: {original_url}")
             
@@ -426,30 +433,34 @@ async def upload_media(
         # Supabase Storage에 업로드
         bucket_name = "advice-media"
         
-        # 버킷 존재 확인 및 생성
+        # 버킷 존재 확인 및 생성 (더 안전한 방법)
         try:
-            bucket_info = supabase.storage.get_bucket(bucket_name)
-            print(f"Bucket exists: {bucket_name}")
+            # 먼저 버킷이 존재하는지 확인
+            buckets = supabase.storage.list_buckets()
+            bucket_exists = any(bucket['name'] == bucket_name for bucket in buckets)
+            
+            if not bucket_exists:
+                print(f"Bucket {bucket_name} does not exist, creating...")
+                # 버킷 생성 시 더 안전한 옵션 사용
+                supabase.storage.create_bucket(
+                    bucket_name, 
+                    {
+                        "public": True,
+                        "allowed_mime_types": ["image/*", "video/*"],
+                        "file_size_limit": 10485760  # 10MB
+                    }
+                )
+                print(f"Successfully created bucket: {bucket_name}")
+            else:
+                print(f"Bucket {bucket_name} already exists")
+                
         except Exception as bucket_error:
-            print(f"Bucket error: {bucket_error}")
-            # 버킷이 없으면 생성
-            try:
-                supabase.storage.create_bucket(bucket_name, {"public": True})
-                print(f"Created bucket: {bucket_name}")
-            except Exception as create_error:
-                print(f"Create bucket error: {create_error}")
-                # 버킷 생성 실패 시 임시 URL 반환
-                media_type = "image" if file.content_type.startswith("image/") else "video"
-                temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
-                # 세미콜론 제거
-                temp_url = temp_url.strip().rstrip(';').strip()
-                return {
-                    "url": temp_url,
-                    "type": media_type
-                }
+            print(f"Bucket operation error: {bucket_error}")
+            # 버킷 생성 실패 시에도 계속 진행 (이미 존재할 수 있음)
         
         # 파일 업로드
         try:
+            print(f"Attempting to upload file: {file_name}")
             response = supabase.storage.from_(bucket_name).upload(
                 file_name, 
                 file_content,
@@ -457,19 +468,16 @@ async def upload_media(
             )
             print(f"Upload response: {response}")
             
-            # 공개 URL 생성 (세미콜론 제거)
-            original_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-            print(f"Original Supabase URL: {original_url}")
+            # 공개 URL 생성
+            media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+            print(f"Original Supabase URL: {media_url}")
             
-            # 강력한 세미콜론 제거 (모든 위치에서)
-            media_url = original_url
+            # URL 정리 (세미콜론 및 공백 제거)
             if media_url:
-                # 앞뒤 공백 제거
                 media_url = media_url.strip()
                 # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
                 while media_url.endswith(';'):
                     media_url = media_url[:-1]
-                # 다시 공백 제거
                 media_url = media_url.strip()
                 
                 print(f"Cleaned media_url: {media_url}")
@@ -481,14 +489,6 @@ async def upload_media(
             print(f"Supabase URL: {settings.SUPABASE_URL}")
             print(f"Bucket name: {bucket_name}")
             print(f"File name: {file_name}")
-            
-            # URL이 올바른지 확인
-            if not media_url.startswith(settings.SUPABASE_URL):
-                print(f"Warning: Media URL doesn't match Supabase URL")
-                media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
-                # 세미콜론 제거
-                media_url = media_url.strip().rstrip(';').strip()
-                print(f"Corrected URL: {media_url}")
             
             return {
                 "url": media_url,
@@ -508,6 +508,7 @@ async def upload_media(
             }
         
     except Exception as e:
+        print(f"General error in upload_media: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"파일 업로드에 실패했습니다: {str(e)}"
