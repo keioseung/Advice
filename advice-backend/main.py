@@ -224,8 +224,11 @@ async def create_advice(
     
     # media_url에서 세미콜론 제거
     media_url = advice.media_url
-    if media_url and media_url.endswith(';'):
-        media_url = media_url[:-1]
+    if media_url:
+        # 세미콜론 제거
+        media_url = media_url.rstrip(';')
+        print(f"Original media_url: {advice.media_url}")
+        print(f"Cleaned media_url: {media_url}")
     
     advice_data = {
         "author_id": current_user.user_id,
@@ -508,8 +511,11 @@ async def update_advice(
     # 조언 업데이트
     # media_url에서 세미콜론 제거
     media_url = advice_update.media_url
-    if media_url and media_url.endswith(';'):
-        media_url = media_url[:-1]
+    if media_url:
+        # 세미콜론 제거
+        media_url = media_url.rstrip(';')
+        print(f"Original media_url: {advice_update.media_url}")
+        print(f"Cleaned media_url: {media_url}")
     
     update_data = {
         "category": advice_update.category,
