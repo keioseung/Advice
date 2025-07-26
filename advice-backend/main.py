@@ -29,7 +29,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "https://advice-app-frontend.vercel.app",
         "https://mmo-production-34bc.up.railway.app",
-        "https://advice-production-d210.up.railway.app"
+        "https://advice-production-d210.up.railway.app",
+        "*"  # 모든 origin 허용 (개발용)
     ],
     allow_origin_regex="https://.*\\.up\\.railway\\.app",
     allow_credentials=True,
