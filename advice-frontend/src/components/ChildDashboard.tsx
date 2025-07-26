@@ -103,7 +103,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
     }
     if (filter === 'password') {
       // 패스워드로 해제 가능한 미래 조언들
-      return advice.target_age > currentAge && advice.unlockType === 'password' && !unlockedAdvices.includes(advice.id)
+      return advice.target_age > currentAge && advice.unlock_type === 'password' && !unlockedAdvices.includes(advice.id)
     }
     if (filter === 'favorites') {
       // 즐겨찾기 중에서 현재 읽을 수 있거나 해제된 것만
@@ -115,7 +115,7 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   // 미래 조언 중 패스워드로 해제 가능한 것들
   const passwordLockedAdvices = advices.filter(advice => 
     advice.target_age > currentAge && 
-    advice.unlockType === 'password' && 
+    advice.unlock_type === 'password' && 
     !unlockedAdvices.includes(advice.id)
   )
 

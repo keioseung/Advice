@@ -107,7 +107,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         content: newAdvice.content,
         media_url: mediaUrl,
         media_type: newAdvice.mediaType,
-        unlockType: newAdvice.unlockType,
+        unlock_type: newAdvice.unlockType,
         password: newAdvice.password
       }
       
