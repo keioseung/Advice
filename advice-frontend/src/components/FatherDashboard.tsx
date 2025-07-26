@@ -36,8 +36,14 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
     const fetchAdvices = async () => {
       try {
         const token = localStorage.getItem('token')
-        if (!token) return
+        console.log('Fetching advices - Token:', token ? 'Present' : 'Missing') // 디버깅용 로그
+        if (!token) {
+          console.log('No token found, skipping fetch') // 디버깅용 로그
+          return
+        }
 
+        console.log('Making API call to:', `${process.env.NEXT_PUBLIC_API_URL}/advices`) // 디버깅용 로그
+        
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -45,11 +51,17 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
           }
         })
 
+        console.log('Response status:', response.status) // 디버깅용 로그
+
         if (response.ok) {
           const data = await response.json()
+          console.log('Fetched advices:', data) // 디버깅용 로그
+          console.log('Number of advices:', data.length) // 디버깅용 로그
           setAdvices(data)
         } else {
           console.error('조언을 가져오는데 실패했습니다:', response.status)
+          const errorText = await response.text()
+          console.error('Error response:', errorText) // 디버깅용 로그
         }
       } catch (error) {
         console.error('조언을 가져오는 중 오류 발생:', error)
