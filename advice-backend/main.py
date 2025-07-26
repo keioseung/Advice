@@ -221,12 +221,18 @@ async def create_advice(
 ):
     if current_user.user_type != "father":
         raise HTTPException(status_code=403, detail="아버지만 조언을 작성할 수 있습니다")
+    
+    # media_url에서 세미콜론 제거
+    media_url = advice.media_url
+    if media_url and media_url.endswith(';'):
+        media_url = media_url[:-1]
+    
     advice_data = {
         "author_id": current_user.user_id,
         "category": advice.category,
         "target_age": advice.target_age,
         "content": advice.content,
-        "media_url": advice.media_url,
+        "media_url": media_url,
         "media_type": advice.media_type,
         "unlock_type": advice.unlockType,
         "password": advice.password,
@@ -500,11 +506,16 @@ async def update_advice(
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
     
     # 조언 업데이트
+    # media_url에서 세미콜론 제거
+    media_url = advice_update.media_url
+    if media_url and media_url.endswith(';'):
+        media_url = media_url[:-1]
+    
     update_data = {
         "category": advice_update.category,
         "target_age": advice_update.target_age,
         "content": advice_update.content,
-        "media_url": advice_update.media_url,
+        "media_url": media_url,
         "media_type": advice_update.media_type,
         "unlock_type": advice_update.unlockType,
         "password": advice_update.password
