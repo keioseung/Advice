@@ -264,20 +264,44 @@ async def get_advices(
     category: Optional[str] = None,
     target_age: Optional[int] = None
 ):
-    query = supabase.table("advices")
-    if current_user.user_type == "father":
-        query = query.eq("author_id", current_user.user_id)
-    else:
-        query = query.eq("author_id", current_user.father_id)
-    if category:
-        query = query.eq("category", category)
-    if target_age:
-        query = query.eq("target_age", target_age)
-    print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}, father_id: {current_user.father_id}")  # 디버깅용 로그
-    response = query.order("created_at", desc=True).execute()
-    print(f"Advices response: {response.data}")  # 디버깅용 로그
-    print(f"Number of advices found: {len(response.data) if response.data else 0}")  # 디버깅용 로그
-    return [AdviceResponse(**advice) for advice in response.data]
+    try:
+        print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}, father_id: {current_user.father_id}")  # 디버깅용 로그
+        
+        query = supabase.table("advices")
+        if current_user.user_type == "father":
+            query = query.eq("author_id", current_user.user_id)
+        else:
+            query = query.eq("author_id", current_user.father_id)
+        if category:
+            query = query.eq("category", category)
+        if target_age:
+            query = query.eq("target_age", target_age)
+        
+        print(f"Executing query for user_type: {current_user.user_type}")  # 디버깅용 로그
+        response = query.order("created_at", desc=True).execute()
+        print(f"Advices response: {response.data}")  # 디버깅용 로그
+        print(f"Number of advices found: {len(response.data) if response.data else 0}")  # 디버깅용 로그
+        
+        if not response.data:
+            return []
+        
+        # 각 advice 데이터 검증
+        advices = []
+        for advice in response.data:
+            try:
+                advice_response = AdviceResponse(**advice)
+                advices.append(advice_response)
+            except Exception as e:
+                print(f"Error parsing advice {advice.get('id', 'unknown')}: {e}")  # 디버깅용 로그
+                continue
+        
+        return advices
+        
+    except Exception as e:
+        print(f"Error in get_advices: {e}")  # 디버깅용 로그
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")  # 디버깅용 로그
+        raise HTTPException(status_code=500, detail=f"조언을 가져오는 중 오류 발생: {str(e)}")
 
 @app.get("/advices/{advice_id}", response_model=AdviceResponse)
 async def get_advice(
