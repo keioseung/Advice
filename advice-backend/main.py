@@ -498,17 +498,11 @@ async def upload_media(
                     print(f"Bucket creation response: {create_response}")
                 except Exception as create_error:
                     print(f"Failed to create bucket: {create_error}")
-                    # 버킷 생성 실패 시 임시 URL 반환
-                    media_type = "image" if file.content_type.startswith("image/") else "video"
-                    temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
-                    # 올바른 슬래시 형식으로 수정
-                    temp_url = temp_url.replace('/advice-media/', '/advice-media//')
-                    # 세미콜론 제거
-                    temp_url = temp_url.strip().rstrip(';').strip()
-                    return {
-                        "url": temp_url,
-                        "type": media_type
-                    }
+                    # 버킷 생성 실패 시 에러 반환
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Storage 버킷을 생성할 수 없습니다. 관리자에게 문의하세요."
+                    )
             
             # 파일 업로드 시도 (수정된 구문)
             try:
@@ -580,17 +574,11 @@ async def upload_media(
             
         except Exception as upload_error:
             print(f"Upload error: {upload_error}")
-            # 업로드 실패 시 임시 URL 반환
-            media_type = "image" if file.content_type.startswith("image/") else "video"
-            temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
-            # 올바른 슬래시 형식으로 수정
-            temp_url = temp_url.replace('/advice-media/', '/advice-media//')
-            # 세미콜론 제거
-            temp_url = temp_url.strip().rstrip(';').strip()
-            return {
-                "url": temp_url,
-                "type": media_type
-            }
+            # 업로드 실패 시 에러 반환
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"파일 업로드에 실패했습니다: {str(upload_error)}"
+            )
         
     except Exception as e:
         print(f"General error in upload_media: {str(e)}")
