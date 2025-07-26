@@ -264,9 +264,13 @@ async def create_advice(
         
         # 응답 데이터에서 media_url 세미콜론 제거
         advice_data = response.data[0]
-        if advice_data.get('media_url') and advice_data['media_url'].endswith(';'):
-            advice_data['media_url'] = advice_data['media_url'][:-1]
-            print(f"Removed semicolon from response media_url: {advice_data['media_url']}")
+        if advice_data.get('media_url'):
+            original_url = advice_data['media_url']
+            if original_url.endswith(';'):
+                advice_data['media_url'] = original_url[:-1]
+                print(f"Removed semicolon from response media_url: {original_url} -> {advice_data['media_url']}")
+            else:
+                print(f"No semicolon found in response media_url: {original_url}")
             
         return AdviceResponse(**advice_data)
     except Exception as e:
@@ -306,9 +310,13 @@ async def get_advices(
         for advice in response.data:
             try:
                 # media_url에서 세미콜론 제거
-                if advice.get('media_url') and advice['media_url'].endswith(';'):
-                    advice['media_url'] = advice['media_url'][:-1]
-                    print(f"Removed semicolon from advice media_url: {advice['media_url']}")
+                if advice.get('media_url'):
+                    original_url = advice['media_url']
+                    if original_url.endswith(';'):
+                        advice['media_url'] = original_url[:-1]
+                        print(f"Removed semicolon from advice media_url: {original_url} -> {advice['media_url']}")
+                    else:
+                        print(f"No semicolon found in media_url: {original_url}")
                 
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
