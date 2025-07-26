@@ -12,11 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 로컬 스토리지에서 사용자 정보 확인
-    const savedUser = localStorage.getItem('user')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
+    // 로그인 페이지를 기본으로 표시하도록 수정
     setLoading(false)
   }, [])
 

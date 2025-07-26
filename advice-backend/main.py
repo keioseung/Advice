@@ -411,16 +411,25 @@ async def upload_media(
                 )
                 print(f"Upload response: {response}")
                 
-                # 공개 URL 생성
-                media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-                media_type = "image" if file.content_type.startswith("image/") else "video"
-                
-                print(f"File uploaded successfully: {media_url}")
-                
-                return {
-                    "url": media_url,
-                    "type": media_type
-                }
+                            # 공개 URL 생성
+            media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+            media_type = "image" if file.content_type.startswith("image/") else "video"
+            
+            print(f"File uploaded successfully: {media_url}")
+            print(f"Supabase URL: {settings.SUPABASE_URL}")
+            print(f"Bucket name: {bucket_name}")
+            print(f"File name: {file_name}")
+            
+            # URL이 올바른지 확인
+            if not media_url.startswith(settings.SUPABASE_URL):
+                print(f"Warning: Media URL doesn't match Supabase URL")
+                media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                print(f"Corrected URL: {media_url}")
+            
+            return {
+                "url": media_url,
+                "type": media_type
+            }
                 
             except Exception as upload_error:
                 print(f"Upload error: {upload_error}")
