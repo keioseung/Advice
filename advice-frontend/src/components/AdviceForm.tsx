@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Send, Heart, BookOpen, DollarSign, Users, GraduationCap, Palette, Target } from 'lucide-react'
+import { Send, Heart, BookOpen, DollarSign, Users, GraduationCap, Palette, Target, Image, Video, X } from 'lucide-react'
 
 interface AdviceFormProps {
   onAddAdvice: (advice: any) => void
@@ -24,6 +24,42 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
   const [category, setCategory] = useState('life')
   const [targetAge, setTargetAge] = useState('')
   const [content, setContent] = useState('')
+  const [mediaFile, setMediaFile] = useState<File | null>(null)
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const isImage = file.type.startsWith('image/')
+    const isVideo = file.type.startsWith('video/')
+    
+    if (!isImage && !isVideo) {
+      alert('이미지(.jpg, .png, .gif) 또는 영상(.mp4, .mov) 파일만 업로드 가능해요.')
+      return
+    }
+
+    setMediaFile(file)
+    setMediaType(isImage ? 'image' : 'video')
+    
+    // 미리보기 생성
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setMediaPreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeMedia = () => {
+    setMediaFile(null)
+    setMediaPreview(null)
+    setMediaType(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +69,9 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
     const newAdvice = {
       category,
       target_age: parseInt(targetAge),
-      content: content.trim()
+      content: content.trim(),
+      mediaFile,
+      mediaType
     }
 
     onAddAdvice(newAdvice)
@@ -41,6 +79,12 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
     // 폼 초기화
     setTargetAge('')
     setContent('')
+    setMediaFile(null)
+    setMediaPreview(null)
+    setMediaType(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (
@@ -107,6 +151,63 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
             placeholder="아이에게 전하고 싶은 마음을 적어보세요..."
             required
           />
+        </div>
+
+        {/* Media Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            사진/영상 첨부 (선택사항)
+          </label>
+          
+          {!mediaPreview ? (
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-500 transition-colors">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex flex-col items-center gap-2 text-gray-500 hover:text-primary-500"
+              >
+                <div className="flex gap-2">
+                  <Image className="w-6 h-6" />
+                  <Video className="w-6 h-6" />
+                </div>
+                <span className="text-sm">클릭하여 사진 또는 영상 업로드</span>
+                <span className="text-xs">JPG, PNG, GIF, MP4, MOV 지원</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              {mediaType === 'image' ? (
+                <img 
+                  src={mediaPreview} 
+                  alt="미리보기" 
+                  className="w-full h-48 object-cover rounded-xl"
+                />
+              ) : (
+                <video 
+                  src={mediaPreview} 
+                  className="w-full h-48 object-cover rounded-xl"
+                  controls
+                />
+              )}
+              <button
+                type="button"
+                onClick={removeMedia}
+                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                {mediaType === 'image' ? '📷 이미지' : '🎥 영상'}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}

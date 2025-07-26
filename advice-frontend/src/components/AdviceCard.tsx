@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Star, Eye, EyeOff, Calendar, User } from 'lucide-react'
+import { Star, Eye, EyeOff, Calendar, User, Image, Video, Play } from 'lucide-react'
 
 interface AdviceCardProps {
   advice: any
@@ -78,6 +78,37 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
         <p className="text-gray-700 leading-relaxed line-clamp-3">
           {advice.content}
         </p>
+        
+        {/* Media Display */}
+        {advice.media_url && (
+          <div className="mt-4">
+            {advice.media_type === 'image' ? (
+              <div className="relative rounded-lg overflow-hidden">
+                <img 
+                  src={advice.media_url} 
+                  alt="첨부 이미지"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                  <Image className="w-3 h-3" />
+                  이미지
+                </div>
+              </div>
+            ) : advice.media_type === 'video' ? (
+              <div className="relative rounded-lg overflow-hidden">
+                <video 
+                  src={advice.media_url}
+                  className="w-full h-48 object-cover"
+                  controls
+                />
+                <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                  <Video className="w-3 h-3" />
+                  영상
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
 
       {/* Footer */}
