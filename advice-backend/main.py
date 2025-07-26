@@ -410,8 +410,12 @@ async def upload_media(
             )
             print(f"Upload response: {response}")
             
-            # 공개 URL 생성
+            # 공개 URL 생성 (세미콜론 제거)
             media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+            # 세미콜론 제거
+            if media_url.endswith(';'):
+                media_url = media_url[:-1]
+            
             media_type = "image" if file.content_type.startswith("image/") else "video"
             
             print(f"File uploaded successfully: {media_url}")
