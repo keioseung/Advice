@@ -474,48 +474,70 @@ async def upload_media(
                     # 버킷 생성 실패 시 임시 URL 반환
                     media_type = "image" if file.content_type.startswith("image/") else "video"
                     temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                    # 올바른 슬래시 형식으로 수정
                     temp_url = temp_url.replace('/advice-media/', '/advice-media//')
+                    # 세미콜론 제거
+                    temp_url = temp_url.strip().rstrip(';').strip()
                     return {
                         "url": temp_url,
                         "type": media_type
                     }
             
-            # 파일 업로드 시도
-            response = supabase.storage.from_(bucket_name).upload(
-                path=file_name, 
-                file=file_content,
-                file_options={"content-type": file.content_type}
-            )
-            print(f"Upload response: {response}")
-            print(f"Upload response type: {type(response)}")
+            # 파일 업로드 시도 (수정된 구문)
+            try:
+                response = supabase.storage.from_(bucket_name).upload(
+                    path=file_name, 
+                    file=file_content,
+                    file_options={"content-type": file.content_type}
+                )
+                print(f"Upload response: {response}")
+                print(f"Upload response type: {type(response)}")
+                
+                # 업로드 성공 여부 확인
+                if hasattr(response, 'error') and response.error:
+                    print(f"Upload error in response: {response.error}")
+                    raise Exception(f"Upload failed: {response.error}")
+                
+                print(f"File uploaded successfully to bucket: {bucket_name}")
+            except Exception as upload_exception:
+                print(f"Upload exception: {upload_exception}")
+                # 다른 방법으로 시도
+                try:
+                    response = supabase.storage.from_(bucket_name).upload(
+                        file_name, 
+                        file_content,
+                        {"content-type": file.content_type}
+                    )
+                    print(f"Alternative upload response: {response}")
+                except Exception as alt_exception:
+                    print(f"Alternative upload also failed: {alt_exception}")
+                    raise alt_exception
             
-            # 업로드 성공 여부 확인
-            if hasattr(response, 'error') and response.error:
-                print(f"Upload error in response: {response.error}")
-                raise Exception(f"Upload failed: {response.error}")
-            
-            print(f"File uploaded successfully to bucket: {bucket_name}")
-            
-            # 공개 URL 생성
+            # 공개 URL 생성 (수정된 방식)
             try:
                 media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
                 print(f"Original Supabase URL: {media_url}")
             except Exception as url_error:
                 print(f"Error getting public URL: {url_error}")
-                # 수동으로 URL 생성
+                # 수동으로 URL 생성 (올바른 형식)
                 media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
                 print(f"Manually created URL: {media_url}")
             
-            # URL 정리 (세미콜론 및 공백 제거만)
+            # URL 정리 (세미콜론 제거 및 올바른 슬래시 형식)
             if media_url:
+                # 세미콜론 제거
                 media_url = media_url.strip()
-                # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
                 while media_url.endswith(';'):
                     media_url = media_url[:-1]
                 media_url = media_url.strip()
                 
+                # 슬래시 정리 (advice-media/ -> advice-media//)
+                if '/advice-media/' in media_url:
+                    media_url = media_url.replace('/advice-media/', '/advice-media//')
+                
                 print(f"Cleaned media_url: {media_url}")
                 print(f"URL ends with semicolon: {media_url.endswith(';')}")
+                print(f"URL has correct double slash: {'/advice-media//' in media_url}")
             
             media_type = "image" if file.content_type.startswith("image/") else "video"
             
@@ -534,6 +556,8 @@ async def upload_media(
             # 업로드 실패 시 임시 URL 반환
             media_type = "image" if file.content_type.startswith("image/") else "video"
             temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+            # 올바른 슬래시 형식으로 수정
+            temp_url = temp_url.replace('/advice-media/', '/advice-media//')
             # 세미콜론 제거
             temp_url = temp_url.strip().rstrip(';').strip()
             return {
