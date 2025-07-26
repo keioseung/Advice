@@ -1,11 +1,13 @@
 -- 애비의 조언 앱 - 미디어 기능 포함 스키마 (최종 수정 버전)
 -- Supabase SQL Editor에서 실행하세요
 
--- 기존 뷰 삭제 (에러 방지)
+-- 기존 뷰와 테이블 완전 삭제 (에러 방지)
 DROP VIEW IF EXISTS advice_stats;
+DROP TABLE IF EXISTS advices CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 -- 사용자 테이블 (public 스키마, UUID 사용)
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 조언 테이블 (미디어 필드 추가, public 스키마, UUID 사용)
-CREATE TABLE IF NOT EXISTS advices (
+CREATE TABLE advices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     category VARCHAR(50) NOT NULL,
@@ -31,10 +33,10 @@ CREATE TABLE IF NOT EXISTS advices (
 );
 
 -- 인덱스 생성
-CREATE INDEX IF NOT EXISTS idx_advices_author_id ON advices(author_id);
-CREATE INDEX IF NOT EXISTS idx_advices_target_age ON advices(target_age);
-CREATE INDEX IF NOT EXISTS idx_advices_category ON advices(category);
-CREATE INDEX IF NOT EXISTS idx_advices_created_at ON advices(created_at);
+CREATE INDEX idx_advices_author_id ON advices(author_id);
+CREATE INDEX idx_advices_target_age ON advices(target_age);
+CREATE INDEX idx_advices_category ON advices(category);
+CREATE INDEX idx_advices_created_at ON advices(created_at);
 
 -- 업데이트 트리거 함수
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -46,12 +48,10 @@ END;
 $$ language 'plpgsql';
 
 -- 트리거 생성
-DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_advices_updated_at ON advices;
 CREATE TRIGGER update_advices_updated_at 
     BEFORE UPDATE ON advices 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -59,15 +59,6 @@ CREATE TRIGGER update_advices_updated_at
 -- Row Level Security (RLS) 활성화
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE advices ENABLE ROW LEVEL SECURITY;
-
--- 기존 RLS 정책 삭제
-DROP POLICY IF EXISTS "Users can view their own profile" ON users;
-DROP POLICY IF EXISTS "Users can update their own profile" ON users;
-DROP POLICY IF EXISTS "Fathers can view all advices" ON advices;
-DROP POLICY IF EXISTS "Children can view advices from their father" ON advices;
-DROP POLICY IF EXISTS "Fathers can insert advices" ON advices;
-DROP POLICY IF EXISTS "Fathers can update their advices" ON advices;
-DROP POLICY IF EXISTS "Fathers can delete their advices" ON advices;
 
 -- RLS 정책들 (UUID 타입 캐스팅으로 수정)
 
@@ -120,7 +111,7 @@ CREATE POLICY "Fathers can delete their advices" ON advices
     );
 
 -- 통계 뷰 생성 (UUID 타입 캐스팅 수정)
-CREATE OR REPLACE VIEW advice_stats AS
+CREATE VIEW advice_stats AS
 SELECT 
     u.id as user_id,
     u.name,
@@ -133,10 +124,6 @@ SELECT
 FROM users u
 LEFT JOIN advices a ON u.id::uuid = a.author_id::uuid
 GROUP BY u.id, u.name, u.user_type;
-
--- 기존 데이터 삭제 (새로운 스키마로 시작)
-DELETE FROM advices;
-DELETE FROM users;
 
 -- 샘플 데이터 (미디어 포함)
 INSERT INTO users (email, password_hash, name, user_type) VALUES
