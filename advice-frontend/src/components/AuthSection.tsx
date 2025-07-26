@@ -173,21 +173,23 @@ export default function AuthSection({ onLogin }: AuthSectionProps) {
             </div>
           </div>
 
-          {/* Name Field - Always Required */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Heart className="w-4 h-4 inline mr-2" />
-              {userType === 'father' ? '아버지 이름' : '자녀 이름'}
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder={userType === 'father' ? '아버지 이름을 입력하세요' : '자녀 이름을 입력하세요'}
-              className="input-field"
-              required
-            />
-          </div>
+          {/* Name Field - Only for Register */}
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Heart className="w-4 h-4 inline mr-2" />
+                {userType === 'father' ? '아버지 이름' : '자녀 이름'}
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder={userType === 'father' ? '아버지 이름을 입력하세요' : '자녀 이름을 입력하세요'}
+                className="input-field"
+                required
+              />
+            </div>
+          )}
 
           {/* Father ID for Child - Always Required */}
           {userType === 'child' && (
