@@ -8,7 +8,10 @@ import {
   Star, 
   Lock, 
   Filter,
-  Sparkles
+  Sparkles,
+  Gift,
+  Users,
+  MessageCircle
 } from 'lucide-react'
 import AdviceCard from './AdviceCard'
 import AdviceModal from './AdviceModal'
@@ -121,49 +124,68 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <motion.div 
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
         <div>
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-secondary-500 to-love-500 bg-clip-text text-transparent mb-2">
             안녕, {user.name}! 🌟
           </h2>
-          <p className="text-white/80">
-            {fatherName ? `${fatherName}님이 당신을 위해 남겨놓은 글귀예요 ❤️` : '아버지가 당신을 위해 준비한 특별한 메시지들이 있어요 ❤️'}
+          <p className="text-lg text-gray-600 font-medium">
+            {fatherName ? `${fatherName}님이 당신을 위해 준비한 특별한 선물이 있어요 💝` : '아버지가 당신을 위해 준비한 특별한 선물이 있어요 💝'}
           </p>
         </div>
         <button
           onClick={onLogout}
-          className="btn-secondary flex items-center gap-2"
+          className="btn-secondary flex items-center gap-2 touch-optimized"
         >
           <LogOut className="w-4 h-4" />
           로그아웃
         </button>
-      </div>
+      </motion.div>
 
       {/* Father Name Input */}
       {showFatherNameInput && (
         <motion.div 
-          className="glass-effect rounded-2xl p-6 bg-gradient-to-r from-blue-100 to-purple-100"
+          className="glass-effect rounded-3xl p-8 love-border"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
           <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
+            <motion.div
+              className="inline-block mb-6"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="w-20 h-20 bg-gradient-to-r from-secondary-500 to-love-500 rounded-3xl flex items-center justify-center mx-auto">
+                <Users className="w-10 h-10 text-white" />
+              </div>
+            </motion.div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">
               아버지의 이름을 알려주세요 💝
             </h3>
-            <div className="flex gap-3 justify-center items-center">
+            <p className="text-gray-600 mb-8">
+              아버지가 준비한 특별한 선물을 받기 위해 아버지의 이름을 알려주세요
+            </p>
+            <div className="flex gap-4 justify-center items-center max-w-md mx-auto">
               <input
                 type="text"
                 value={fatherName}
                 onChange={(e) => setFatherName(e.target.value)}
                 placeholder="아버지 이름"
-                className="input-field flex-1 max-w-xs"
+                className="input-field flex-1"
               />
               <button
                 onClick={() => setShowFatherNameInput(false)}
                 disabled={!fatherName.trim()}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed touch-optimized"
               >
-                확인
+                <Heart className="w-5 h-5 mr-2" />
+                선물 받기
               </button>
             </div>
           </div>
@@ -172,108 +194,156 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
 
       {/* Profile Card */}
       <motion.div 
-        className="glass-effect rounded-2xl p-6 bg-gradient-to-r from-yellow-100 to-orange-100"
+        className="glass-effect rounded-3xl p-8 love-border"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
+        <div className="flex items-center gap-6">
+          <motion.div 
+            className="w-20 h-20 bg-gradient-to-r from-secondary-500 to-love-500 rounded-3xl flex items-center justify-center"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Gift className="w-10 h-10 text-white" />
+          </motion.div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800">
-              {user.name}의 특별한 메시지
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {user.name}의 특별한 선물 🎁
             </h3>
-            <p className="text-gray-600">
-              현재 {currentAge}세, {availableAdvices.length}개의 글귀를 읽을 수 있어요!
+            <p className="text-gray-600 text-lg">
+              현재 {currentAge}세, {availableAdvices.length}개의 선물을 받을 수 있어요!
             </p>
           </div>
         </div>
       </motion.div>
 
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <motion.div 
+        className="grid md:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+      >
         <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
+          className="glass-effect rounded-3xl p-6 text-center love-border"
+          whileHover={{ scale: 1.05, y: -5 }}
+          transition={{ duration: 0.3 }}
         >
-          <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{availableAdvices.length}</div>
-          <div className="text-sm text-gray-600">지금 읽을 수 있는 글귀</div>
+          <Heart className="w-10 h-10 text-love-500 mx-auto mb-3" />
+          <div className="text-3xl font-bold text-gray-800 mb-1">{availableAdvices.length}</div>
+          <div className="text-sm text-gray-600">지금 받을 수 있는 선물</div>
         </motion.div>
         
         <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
+          className="glass-effect rounded-3xl p-6 text-center love-border"
+          whileHover={{ scale: 1.05, y: -5 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{unlockedFutureAdvices.length}</div>
-          <div className="text-sm text-gray-600">해제된 미래 글귀</div>
+          <Lock className="w-10 h-10 text-gray-500 mx-auto mb-3" />
+          <div className="text-3xl font-bold text-gray-800 mb-1">{unlockedFutureAdvices.length}</div>
+          <div className="text-sm text-gray-600">해제된 미래 선물</div>
         </motion.div>
         
         <motion.div 
-          className="glass-effect rounded-2xl p-6 text-center"
-          whileHover={{ scale: 1.05 }}
+          className="glass-effect rounded-3xl p-6 text-center love-border"
+          whileHover={{ scale: 1.05, y: -5 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-800">{favoriteAdvices.length}</div>
-          <div className="text-sm text-gray-600">마음에 든 글귀</div>
+          <Star className="w-10 h-10 text-warm-500 mx-auto mb-3" />
+          <div className="text-3xl font-bold text-gray-800 mb-1">{favoriteAdvices.length}</div>
+          <div className="text-sm text-gray-600">마음에 든 선물</div>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Filter Buttons */}
-      <div className="flex gap-2 flex-wrap">
+      <motion.div 
+        className="flex gap-3 flex-wrap"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
         {[
-          { key: 'available', label: '💝 지금 읽을 수 있는 글귀', icon: Heart },
-          { key: 'future', label: '🔓 해제된 미래 글귀', icon: Lock },
-          { key: 'favorites', label: '⭐ 마음에 든 글귀', icon: Star }
+          { key: 'available', label: '💝 지금 받을 수 있는 선물', icon: Heart },
+          { key: 'future', label: '🔓 해제된 미래 선물', icon: Lock },
+          { key: 'favorites', label: '⭐ 마음에 든 선물', icon: Star }
         ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-300 ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-medium transition-all duration-300 touch-optimized ${
               filter === key
-                ? 'bg-primary-500 text-white'
-                : 'bg-white/50 text-gray-600 hover:bg-white/70'
+                ? 'bg-gradient-to-r from-secondary-500 to-love-500 text-white shadow-warm-lg'
+                : 'bg-white/50 text-gray-600 hover:bg-white/70 hover:shadow-warm'
             }`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-5 h-5" />
             {label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Advice List */}
-      <div className="glass-effect rounded-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">
-            {filter === 'available' && '💝 지금 읽을 수 있는 글귀'}
-            {filter === 'future' && '🔓 해제된 미래 글귀'}
-            {filter === 'favorites' && '⭐ 마음에 든 글귀'}
-          </h3>
-          <Filter className="w-5 h-5 text-gray-500" />
+      <motion.div 
+        className="glass-effect rounded-3xl p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.0 }}
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {filter === 'available' && '💝 지금 받을 수 있는 선물'}
+              {filter === 'future' && '🔓 해제된 미래 선물'}
+              {filter === 'favorites' && '⭐ 마음에 든 선물'}
+            </h3>
+            <p className="text-gray-600">
+              {fatherName ? `${fatherName}님이 준비한 특별한 메시지들` : '아버지가 준비한 특별한 메시지들'}
+            </p>
+          </div>
+          <Filter className="w-6 h-6 text-gray-500" />
         </div>
 
-        <div className="space-y-4">
-          {filteredAdvices.map((advice) => (
-            <AdviceCard
+        <div className="space-y-6">
+          {filteredAdvices.map((advice, index) => (
+            <motion.div
               key={advice.id}
-              advice={advice}
-              onClick={() => handleAdviceClick(advice)}
-              userType="child"
-              onToggleFavorite={() => handleToggleFavorite(advice.id)}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <AdviceCard
+                advice={advice}
+                onClick={() => handleAdviceClick(advice)}
+                userType="child"
+                onToggleFavorite={() => handleToggleFavorite(advice.id)}
+              />
+            </motion.div>
           ))}
           
           {filteredAdvices.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              {filter === 'available' && '아직 읽을 수 있는 글귀가 없어요 😊'}
-              {filter === 'future' && '해제된 미래 글귀가 없어요 🔒'}
-              {filter === 'favorites' && '마음에 든 글귀가 없어요 ⭐'}
-            </div>
+            <motion.div 
+              className="text-center py-16"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="w-20 h-20 bg-gradient-to-r from-secondary-100 to-love-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-10 h-10 text-secondary-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {filter === 'available' && '아직 받을 수 있는 선물이 없어요 😊'}
+                {filter === 'future' && '해제된 미래 선물이 없어요 🔒'}
+                {filter === 'favorites' && '마음에 든 선물이 없어요 ⭐'}
+              </h3>
+              <p className="text-gray-600">
+                {filter === 'available' && '조금만 기다리면 아버지가 준비한 특별한 선물을 받을 수 있어요!'}
+                {filter === 'future' && '패스워드를 입력하면 미래의 선물을 미리 받을 수 있어요!'}
+                {filter === 'favorites' && '마음에 드는 선물에 별표를 눌러보세요!'}
+              </p>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Modal */}
       {showModal && selectedAdvice && (
@@ -287,57 +357,68 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
       {/* Password Modal */}
       {showPasswordModal && selectedFutureAdvice && (
         <motion.div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <motion.div 
-            className="glass-effect rounded-2xl p-8 max-w-md w-full mx-4"
+            className="glass-effect rounded-3xl p-8 max-w-md w-full love-border"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
           >
             <div className="text-center">
-              <Lock className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                🔒 미래의 글귀
+              <motion.div
+                className="inline-block mb-6"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-love-500 rounded-3xl flex items-center justify-center mx-auto">
+                  <Lock className="w-8 h-8 text-white" />
+                </div>
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                🔒 미래의 특별한 선물
               </h3>
-              <p className="text-gray-600 mb-6">
-                이 글귀는 {selectedFutureAdvice.target_age}세에 읽을 수 있어요.<br/>
-                패스워드를 입력하면 지금 볼 수 있어요!
+              <p className="text-gray-600 mb-8 text-lg">
+                이 선물은 {selectedFutureAdvice.target_age}세에 받을 수 있어요.<br/>
+                패스워드를 입력하면 지금 받을 수 있어요!
               </p>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="패스워드를 입력하세요"
-                  className="input-field w-full"
+                  className="input-field text-center text-lg"
                   onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
                 />
                 
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <button
                     onClick={() => {
                       setShowPasswordModal(false)
                       setPassword('')
                       setSelectedFutureAdvice(null)
                     }}
-                    className="btn-secondary flex-1"
+                    className="btn-secondary flex-1 touch-optimized"
                   >
-                    취소
+                    나중에 받기
                   </button>
                   <button
                     onClick={handlePasswordSubmit}
-                    className="btn-primary flex-1"
+                    className="btn-primary flex-1 touch-optimized"
                   >
-                    해제하기
+                    <Heart className="w-5 h-5 mr-2" />
+                    선물 받기
                   </button>
                 </div>
                 
-                <p className="text-xs text-gray-500 mt-4">
-                  💡 힌트: 아버지가 가장 많이 하는 말
-                </p>
+                <div className="bg-warm-50 border border-warm-200 rounded-2xl p-4">
+                  <p className="text-sm text-warm-700">
+                    💡 힌트: 아버지가 가장 많이 하는 말
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>

@@ -1,100 +1,169 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Heart, MessageCircle, Star, User, Users } from 'lucide-react'
+import { Heart, Sparkles, Users, BookOpen, MessageCircle, Star } from 'lucide-react'
 import AuthSection from '@/components/AuthSection'
 import FatherDashboard from '@/components/FatherDashboard'
 import ChildDashboard from '@/components/ChildDashboard'
 
 export default function Home() {
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [userType, setUserType] = useState<'father' | 'child'>('father')
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const handleLogin = (user: any) => {
-    setCurrentUser(user)
-    setUserType(user.user_type)
+  useEffect(() => {
+    // 로컬 스토리지에서 사용자 정보 확인
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      setUser(JSON.parse(savedUser))
+    }
+    setLoading(false)
+  }, [])
+
+  const handleLogin = (userData: any) => {
+    setUser(userData)
+    localStorage.setItem('user', JSON.stringify(userData))
   }
 
   const handleLogout = () => {
-    setCurrentUser(null)
+    setUser(null)
+    localStorage.removeItem('user')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen warm-bg flex items-center justify-center">
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="heartbeat mb-4">
+            <Heart className="w-16 h-16 text-primary-500 mx-auto" />
+          </div>
+          <p className="text-gray-600 font-medium">따뜻한 마음을 담아 로딩 중...</p>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (user) {
+    return (
+      <div className="min-h-screen warm-bg family-emoji-bg">
+        <div className="mobile-optimized py-6">
+          {user.user_type === 'father' ? (
+            <FatherDashboard user={user} onLogout={handleLogout} />
+          ) : (
+            <ChildDashboard user={user} onLogout={handleLogout} />
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-600">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <motion.h1 
-            className="text-4xl md:text-6xl font-bold text-white mb-4"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            👨‍👦 애비의 조언
-          </motion.h1>
-          <motion.p 
-            className="text-xl text-white/90 max-w-2xl mx-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            미래의 나, 그리고 우리 아이를 위한 특별한 메시지
-          </motion.p>
-        </motion.div>
-
-        {/* Main Content */}
+    <div className="min-h-screen warm-bg family-emoji-bg">
+      <div className="mobile-optimized py-6">
+        {/* Hero Section */}
         <motion.div
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ duration: 0.6 }}
         >
-          {!currentUser ? (
-            <AuthSection onLogin={handleLogin} />
-          ) : userType === 'father' ? (
-            <FatherDashboard user={currentUser} onLogout={handleLogout} />
-          ) : (
-            <ChildDashboard user={currentUser} onLogout={handleLogout} />
-          )}
+          <div className="mb-6">
+            <motion.div
+              className="inline-block mb-4"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Heart className="w-16 h-16 text-love-500 mx-auto" />
+            </motion.div>
+            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary-500 via-secondary-500 to-love-500 bg-clip-text text-transparent mb-4">
+              애비의 조언
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 font-medium">
+              아버지의 따뜻한 마음이 담긴 특별한 선물 💝
+            </p>
+          </div>
         </motion.div>
 
         {/* Features Section */}
-        {!currentUser && (
-          <motion.div 
-            className="mt-20 grid md:grid-cols-3 gap-8"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
+        <motion.div
+          className="grid md:grid-cols-3 gap-6 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <motion.div
+            className="glass-effect rounded-3xl p-6 text-center love-border"
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="glass-effect rounded-2xl p-8 text-center">
-              <Heart className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">사랑의 메시지</h3>
-              <p className="text-gray-600">
-                아버지의 마음을 담은 특별한 조언들을 미래의 아이에게 전달합니다
-              </p>
+            <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="w-6 h-6 text-white" />
             </div>
-            
-            <div className="glass-effect rounded-2xl p-8 text-center">
-              <MessageCircle className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">시대별 조언</h3>
-              <p className="text-gray-600">
-                나이에 맞는 적절한 시점에 조언을 전달하여 더욱 의미있게 만듭니다
-              </p>
-            </div>
-            
-            <div className="glass-effect rounded-2xl p-8 text-center">
-              <Star className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3">소중한 추억</h3>
-              <p className="text-gray-600">
-                시간이 지나도 변하지 않는 아버지의 사랑과 지혜를 보관합니다
-              </p>
-            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">따뜻한 조언</h3>
+            <p className="text-gray-600 text-sm">
+              아버지가 자녀를 위해 준비한 특별한 메시지들
+            </p>
           </motion.div>
-        )}
+
+          <motion.div
+            className="glass-effect rounded-3xl p-6 text-center love-border"
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <div className="w-12 h-12 bg-gradient-to-r from-secondary-500 to-love-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">가족 연결</h3>
+            <p className="text-gray-600 text-sm">
+              세대를 넘어선 아버지와 자녀의 소통 공간
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="glass-effect rounded-3xl p-6 text-center love-border"
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <div className="w-12 h-12 bg-gradient-to-r from-love-500 to-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">성장 동반</h3>
+            <p className="text-gray-600 text-sm">
+              나이에 맞는 조언으로 함께하는 성장 여정
+            </p>
+          </motion.div>
+        </motion.div>
+
+        {/* Auth Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <AuthSection onLogin={handleLogin} />
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          className="text-center mt-16 pt-8 border-t border-white/20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="w-4 h-4 text-primary-500" />
+            <span className="text-sm text-gray-500">따뜻한 마음으로 만든 특별한 선물</span>
+            <Star className="w-4 h-4 text-secondary-500" />
+          </div>
+          <p className="text-xs text-gray-400">
+            아버지의 사랑이 담긴 디지털 조언 앱 💕
+          </p>
+        </motion.div>
       </div>
     </div>
   )
