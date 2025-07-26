@@ -456,62 +456,41 @@ async def upload_media(
         # Supabase Storage에 업로드
         bucket_name = "advice-media"
         
-        # 버킷 존재 확인 및 생성 (더 안전한 방법)
-        try:
-            print(f"Checking if bucket '{bucket_name}' exists...")
-            
-            # 먼저 버킷이 존재하는지 확인
-            try:
-                buckets = supabase.storage.list_buckets()
-                bucket_exists = any(bucket['name'] == bucket_name for bucket in buckets)
-                print(f"Bucket list: {[bucket['name'] for bucket in buckets]}")
-                print(f"Bucket '{bucket_name}' exists: {bucket_exists}")
-                
-                if not bucket_exists:
-                    print(f"Bucket {bucket_name} does not exist, creating...")
-                    # 버킷 생성 시 더 안전한 옵션 사용
-                    create_response = supabase.storage.create_bucket(
-                        bucket_name, 
-                        {
-                            "public": True,
-                            "allowed_mime_types": ["image/*", "video/*"],
-                            "file_size_limit": 10485760  # 10MB
-                        }
-                    )
-                    print(f"Bucket creation response: {create_response}")
-                    print(f"Successfully created bucket: {bucket_name}")
-                else:
-                    print(f"Bucket {bucket_name} already exists")
-                    
-            except Exception as list_error:
-                print(f"Error listing buckets: {list_error}")
-                # 버킷 목록 조회 실패 시에도 버킷 생성 시도
-                try:
-                    print(f"Attempting to create bucket {bucket_name} anyway...")
-                    create_response = supabase.storage.create_bucket(
-                        bucket_name, 
-                        {
-                            "public": True,
-                            "allowed_mime_types": ["image/*", "video/*"],
-                            "file_size_limit": 10485760  # 10MB
-                        }
-                    )
-                    print(f"Bucket creation response: {create_response}")
-                    print(f"Successfully created bucket: {bucket_name}")
-                except Exception as create_error:
-                    print(f"Failed to create bucket: {create_error}")
-                    # 버킷 생성 실패 시에도 계속 진행 (이미 존재할 수 있음)
-                
-        except Exception as bucket_error:
-            print(f"Bucket operation error: {bucket_error}")
-            # 버킷 생성 실패 시에도 계속 진행 (이미 존재할 수 있음)
-        
         # 파일 업로드
         try:
             print(f"Attempting to upload file: {file_name}")
             print(f"Bucket name: {bucket_name}")
             print(f"File content length: {len(file_content)} bytes")
             print(f"File content type: {file.content_type}")
+            
+            # 먼저 버킷이 실제로 존재하는지 다시 확인
+            try:
+                bucket_info = supabase.storage.get_bucket(bucket_name)
+                print(f"Bucket info: {bucket_info}")
+            except Exception as bucket_check_error:
+                print(f"Bucket check error: {bucket_check_error}")
+                # 버킷이 없으면 생성 시도
+                try:
+                    print(f"Attempting to create bucket {bucket_name}...")
+                    create_response = supabase.storage.create_bucket(
+                        bucket_name, 
+                        {
+                            "public": True,
+                            "allowed_mime_types": ["image/*", "video/*"],
+                            "file_size_limit": 10485760  # 10MB
+                        }
+                    )
+                    print(f"Bucket creation response: {create_response}")
+                except Exception as create_error:
+                    print(f"Failed to create bucket: {create_error}")
+                    # 버킷 생성 실패 시 임시 URL 반환
+                    media_type = "image" if file.content_type.startswith("image/") else "video"
+                    temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                    temp_url = temp_url.replace('/advice-media/', '/advice-media//')
+                    return {
+                        "url": temp_url,
+                        "type": media_type
+                    }
             
             # 파일 업로드 시도
             response = supabase.storage.from_(bucket_name).upload(
