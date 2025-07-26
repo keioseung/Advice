@@ -272,17 +272,28 @@ async def create_advice(
         advice_data = response.data[0]
         if advice_data.get('media_url'):
             original_url = advice_data['media_url']
-            # 세미콜론 제거
+            # 세미콜론 제거 (더 강력하게)
             cleaned_url = original_url.strip()
+            # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
             while cleaned_url.endswith(';'):
                 cleaned_url = cleaned_url[:-1]
             cleaned_url = cleaned_url.strip()
+            
+            # 슬래시 정리 (advice-media/ -> advice-media//)
+            if '/advice-media/' in cleaned_url:
+                # 먼저 3개 이상의 슬래시를 2개로 정리
+                cleaned_url = cleaned_url.replace('/advice-media///', '/advice-media//')
+                # 그 다음 1개 슬래시를 2개로 변경
+                cleaned_url = cleaned_url.replace('/advice-media/', '/advice-media//')
             
             if cleaned_url != original_url:
                 advice_data['media_url'] = cleaned_url
                 print(f"Removed semicolon from response media_url: {original_url} -> {cleaned_url}")
             else:
                 print(f"No semicolon found in response media_url: {original_url}")
+            
+            print(f"Final cleaned URL ends with semicolon: {cleaned_url.endswith(';')}")
+            print(f"Final cleaned URL has correct double slash: {'/advice-media//' in cleaned_url}")
             
         return AdviceResponse(**advice_data)
     except Exception as e:
@@ -321,7 +332,7 @@ async def get_advices(
         advices = []
         for advice in response.data:
             try:
-                # media_url에서 세미콜론 제거 (더 강력한 정리)
+                # media_url에서 세미콜론 제거 및 슬래시 정리
                 if advice.get('media_url'):
                     original_url = advice['media_url']
                     # 강력한 세미콜론 제거
@@ -335,12 +346,20 @@ async def get_advices(
                         # 다시 공백 제거
                         cleaned_url = cleaned_url.strip()
                         
+                        # 슬래시 정리 (advice-media/ -> advice-media//)
+                        if '/advice-media/' in cleaned_url:
+                            # 먼저 3개 이상의 슬래시를 2개로 정리
+                            cleaned_url = cleaned_url.replace('/advice-media///', '/advice-media//')
+                            # 그 다음 1개 슬래시를 2개로 변경
+                            cleaned_url = cleaned_url.replace('/advice-media/', '/advice-media//')
+                        
                         if cleaned_url != original_url:
                             advice['media_url'] = cleaned_url
                             print(f"Cleaned media_url: {original_url} -> {cleaned_url}")
                         else:
                             print(f"Media URL already clean: {original_url}")
                         print(f"Final URL ends with semicolon: {cleaned_url.endswith(';')}")
+                        print(f"Final URL has correct double slash: {'/advice-media//' in cleaned_url}")
                 
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
@@ -366,7 +385,7 @@ async def get_advice(
         raise HTTPException(status_code=404, detail="조언을 찾을 수 없습니다")
     advice = response.data[0]
     
-    # media_url 정리 (세미콜론 제거만)
+    # media_url 정리 (세미콜론 제거 및 슬래시 정리)
     if advice.get('media_url'):
         original_url = advice['media_url']
         cleaned_url = original_url.strip()
@@ -374,6 +393,14 @@ async def get_advice(
         while cleaned_url.endswith(';'):
             cleaned_url = cleaned_url[:-1]
         cleaned_url = cleaned_url.strip()
+        
+        # 슬래시 정리 (advice-media/ -> advice-media//)
+        if '/advice-media/' in cleaned_url:
+            # 먼저 3개 이상의 슬래시를 2개로 정리
+            cleaned_url = cleaned_url.replace('/advice-media///', '/advice-media//')
+            # 그 다음 1개 슬래시를 2개로 변경
+            cleaned_url = cleaned_url.replace('/advice-media/', '/advice-media//')
+        
         advice['media_url'] = cleaned_url
     
     # 권한 확인
