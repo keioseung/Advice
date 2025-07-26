@@ -169,7 +169,8 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
               아버지의 이름을 알려주세요 💝
             </h3>
             <p className="text-gray-600 mb-8">
-              아버지가 준비한 특별한 선물을 받기 위해 아버지의 이름을 알려주세요
+              아버지가 준비한 특별한 선물을 받기 위해 아버지의 이름을 알려주세요.<br/>
+              로그인할 때 입력한 아버지 ID와 연결됩니다.
             </p>
             <div className="flex gap-4 justify-center items-center max-w-md mx-auto">
               <input
@@ -187,6 +188,9 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
                 <Heart className="w-5 h-5 mr-2" />
                 선물 받기
               </button>
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              💡 아버지의 실제 이름을 입력해주세요 (예: 김철수)
             </div>
           </div>
         </motion.div>

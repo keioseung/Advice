@@ -168,43 +168,38 @@ export default function AuthSection({ onLogin }: AuthSectionProps) {
             </div>
           </div>
 
-          {/* Register Only Fields */}
-          {!isLogin && (
-            <>
-              {/* Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Heart className="w-4 h-4 inline mr-2" />
-                  {userType === 'father' ? '아버지 이름' : '자녀 이름'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder={userType === 'father' ? '아버지 이름을 입력하세요' : '자녀 이름을 입력하세요'}
-                  className="input-field"
-                  required
-                />
-              </div>
+          {/* Name Field - Always Required */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Heart className="w-4 h-4 inline mr-2" />
+              {userType === 'father' ? '아버지 이름' : '자녀 이름'}
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              placeholder={userType === 'father' ? '아버지 이름을 입력하세요' : '자녀 이름을 입력하세요'}
+              className="input-field"
+              required
+            />
+          </div>
 
-              {/* Father ID for Child */}
-              {userType === 'child' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <User className="w-4 h-4 inline mr-2" />
-                    아버지 ID
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.father_id}
-                    onChange={(e) => handleInputChange('father_id', e.target.value)}
-                    placeholder="아버지 ID를 입력하세요"
-                    className="input-field"
-                    required
-                  />
-                </div>
-              )}
-            </>
+          {/* Father ID for Child - Always Required */}
+          {userType === 'child' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <User className="w-4 h-4 inline mr-2" />
+                아버지 ID
+              </label>
+              <input
+                type="text"
+                value={formData.father_id}
+                onChange={(e) => handleInputChange('father_id', e.target.value)}
+                placeholder="아버지 ID를 입력하세요"
+                className="input-field"
+                required
+              />
+            </div>
           )}
 
           {/* Error Message */}

@@ -29,9 +29,6 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
   const [filter, setFilter] = useState('all')
   const [selectedAdvice, setSelectedAdvice] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
-  const [fatherName, setFatherName] = useState('')
-  const [childName, setChildName] = useState('')
-  const [showNameInput, setShowNameInput] = useState(true)
 
   // 샘플 데이터
   useEffect(() => {
@@ -102,7 +99,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
             안녕하세요, {user.name}님! 👨‍👦
           </h2>
           <p className="text-lg text-gray-600 font-medium">
-            {childName ? `${childName}을(를) 위한 특별한 선물을 준비해보세요 💝` : '아이를 위한 특별한 선물을 준비해보세요 💝'}
+            자녀를 위한 특별한 선물을 준비해보세요 💝
           </p>
         </div>
         <button
@@ -114,69 +111,46 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         </button>
       </motion.div>
 
-      {/* Name Input Section */}
-      {showNameInput && (
-        <motion.div 
-          className="glass-effect rounded-3xl p-8 love-border"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="text-center">
-            <motion.div
-              className="inline-block mb-6"
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl flex items-center justify-center mx-auto">
-                <Gift className="w-10 h-10 text-white" />
-              </div>
-            </motion.div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">
-              가족 정보를 입력해주세요 💝
-            </h3>
-            <p className="text-gray-600 mb-8">
-              자녀를 위한 특별한 선물을 준비하기 위해 가족 정보를 알려주세요
-            </p>
-            <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-gray-700 font-medium">
-                  <User className="w-5 h-5 text-primary-500" />
-                  아버지 이름
-                </label>
-                <input
-                  type="text"
-                  value={fatherName}
-                  onChange={(e) => setFatherName(e.target.value)}
-                  placeholder="아버지 이름"
-                  className="input-field"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-gray-700 font-medium">
-                  <Users className="w-5 h-5 text-secondary-500" />
-                  자녀 이름
-                </label>
-                <input
-                  type="text"
-                  value={childName}
-                  onChange={(e) => setChildName(e.target.value)}
-                  placeholder="자녀 이름"
-                  className="input-field"
-                />
-              </div>
+      {/* Welcome Section */}
+      <motion.div 
+        className="glass-effect rounded-3xl p-8 love-border"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <div className="text-center">
+          <motion.div
+            className="inline-block mb-6"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl flex items-center justify-center mx-auto">
+              <Gift className="w-10 h-10 text-white" />
             </div>
-            <button
-              onClick={() => setShowNameInput(false)}
-              disabled={!fatherName.trim() || !childName.trim()}
-              className="btn-primary mt-8 disabled:opacity-50 disabled:cursor-not-allowed touch-optimized"
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              가족과 함께 시작하기
-            </button>
+          </motion.div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">
+            자녀를 위한 특별한 선물을 준비해보세요 💝
+          </h3>
+          <p className="text-gray-600 mb-8">
+            자녀의 미래를 위한 따뜻한 조언과 메시지를 작성해보세요. 
+            각 나이대별로 특별한 선물을 준비할 수 있어요!
+          </p>
+          <div className="grid md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+            <div className="bg-primary-50 rounded-2xl p-4">
+              <div className="text-2xl mb-2">💡</div>
+              <div className="text-sm font-medium text-primary-700">인생 조언</div>
+            </div>
+            <div className="bg-secondary-50 rounded-2xl p-4">
+              <div className="text-2xl mb-2">💕</div>
+              <div className="text-sm font-medium text-secondary-700">사랑 이야기</div>
+            </div>
+            <div className="bg-warm-50 rounded-2xl p-4">
+              <div className="text-2xl mb-2">💼</div>
+              <div className="text-sm font-medium text-warm-700">진로 가이드</div>
+            </div>
           </div>
-        </motion.div>
-      )}
+        </div>
+      </motion.div>
 
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-8">
@@ -204,7 +178,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                   작성한 선물들 🎁
                 </h3>
                 <p className="text-gray-600">
-                  {childName ? `${childName}을(를) 위해 준비한 특별한 메시지들` : '자녀를 위해 준비한 특별한 메시지들'}
+                  자녀를 위해 준비한 특별한 메시지들
                 </p>
               </div>
               <Filter className="w-6 h-6 text-gray-500" />
@@ -264,7 +238,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                     아직 준비한 선물이 없어요
                   </h3>
                   <p className="text-gray-600">
-                    {childName ? `${childName}을(를) 위한 첫 번째 선물을 준비해보세요!` : '자녀를 위한 첫 번째 선물을 준비해보세요!'}
+                    자녀를 위한 첫 번째 선물을 준비해보세요!
                   </p>
                 </motion.div>
               )}
