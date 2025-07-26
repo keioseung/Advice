@@ -230,6 +230,11 @@ async def create_advice(
         print(f"Original media_url: {advice.media_url}")
         print(f"Cleaned media_url: {media_url}")
     
+    # 최종적으로 DB에 저장하기 전에 한 번 더 확인
+    if media_url and media_url.endswith(';'):
+        media_url = media_url[:-1]
+        print(f"Final cleanup - removed semicolon: {media_url}")
+    
     advice_data = {
         "author_id": current_user.user_id,
         "category": advice.category,
@@ -312,12 +317,23 @@ async def get_advices(
                 # media_url에서 세미콜론 제거 (더 강력한 정리)
                 if advice.get('media_url'):
                     original_url = advice['media_url']
-                    cleaned_url = original_url.strip().rstrip(';').strip()
-                    if cleaned_url != original_url:
-                        advice['media_url'] = cleaned_url
-                        print(f"Cleaned media_url: {original_url} -> {cleaned_url}")
-                    else:
-                        print(f"Media URL already clean: {original_url}")
+                    # 강력한 세미콜론 제거
+                    cleaned_url = original_url
+                    if cleaned_url:
+                        # 앞뒤 공백 제거
+                        cleaned_url = cleaned_url.strip()
+                        # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
+                        while cleaned_url.endswith(';'):
+                            cleaned_url = cleaned_url[:-1]
+                        # 다시 공백 제거
+                        cleaned_url = cleaned_url.strip()
+                        
+                        if cleaned_url != original_url:
+                            advice['media_url'] = cleaned_url
+                            print(f"Cleaned media_url: {original_url} -> {cleaned_url}")
+                        else:
+                            print(f"Media URL already clean: {original_url}")
+                        print(f"Final URL ends with semicolon: {cleaned_url.endswith(';')}")
                 
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
@@ -442,11 +458,22 @@ async def upload_media(
             print(f"Upload response: {response}")
             
             # 공개 URL 생성 (세미콜론 제거)
-            media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-            # 세미콜론 제거 (더 강력한 정리)
-            media_url = media_url.strip().rstrip(';').strip()
-            print(f"Original Supabase URL: {supabase.storage.from_(bucket_name).get_public_url(file_name)}")
-            print(f"Cleaned media_url: {media_url}")
+            original_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+            print(f"Original Supabase URL: {original_url}")
+            
+            # 강력한 세미콜론 제거 (모든 위치에서)
+            media_url = original_url
+            if media_url:
+                # 앞뒤 공백 제거
+                media_url = media_url.strip()
+                # 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
+                while media_url.endswith(';'):
+                    media_url = media_url[:-1]
+                # 다시 공백 제거
+                media_url = media_url.strip()
+                
+                print(f"Cleaned media_url: {media_url}")
+                print(f"URL ends with semicolon: {media_url.endswith(';')}")
             
             media_type = "image" if file.content_type.startswith("image/") else "video"
             

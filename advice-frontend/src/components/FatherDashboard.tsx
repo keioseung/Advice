@@ -98,6 +98,20 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         if (uploadResponse.ok) {
           const uploadData = await uploadResponse.json()
           mediaUrl = uploadData.url
+          // 강력한 세미콜론 제거
+          if (mediaUrl) {
+            // 앞뒤 공백 제거
+            mediaUrl = mediaUrl.trim()
+            // 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
+            while (mediaUrl.endsWith(';')) {
+              mediaUrl = mediaUrl.slice(0, -1)
+            }
+            // 다시 공백 제거
+            mediaUrl = mediaUrl.trim()
+            console.log('Original mediaUrl:', uploadData.url)
+            console.log('Cleaned mediaUrl:', mediaUrl)
+            console.log('Still ends with semicolon:', mediaUrl.endsWith(';'))
+          }
         }
       }
 
