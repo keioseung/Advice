@@ -232,8 +232,11 @@ async def create_advice(
         "is_read": False,
         "is_favorite": False
     }
+    print(f"Creating advice with data: {advice_data}")  # 디버깅용 로그
     response = supabase.table("advices").insert(advice_data).execute()
+    print(f"Supabase response: {response}")  # 디버깅용 로그
     if not response.data:
+        print(f"Error response: {response.error}")  # 디버깅용 로그
         raise HTTPException(status_code=500, detail="조언 생성에 실패했습니다")
     return AdviceResponse(**response.data[0])
 
@@ -252,7 +255,9 @@ async def get_advices(
         query = query.eq("category", category)
     if target_age:
         query = query.eq("target_age", target_age)
+    print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}")  # 디버깅용 로그
     response = query.order("created_at", desc=True).execute()
+    print(f"Advices response: {response.data}")  # 디버깅용 로그
     return [AdviceResponse(**advice) for advice in response.data]
 
 @app.get("/advices/{advice_id}", response_model=AdviceResponse)

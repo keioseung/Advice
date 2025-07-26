@@ -84,6 +84,18 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         }
       }
 
+      const adviceData = {
+        category: newAdvice.category,
+        target_age: newAdvice.target_age,
+        content: newAdvice.content,
+        media_url: mediaUrl,
+        media_type: newAdvice.mediaType,
+        unlockType: newAdvice.unlockType,
+        password: newAdvice.password
+      }
+      
+      console.log('Sending advice data:', adviceData)  // 디버깅용 로그
+      
       // 조언 생성
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices`, {
         method: 'POST',
@@ -91,15 +103,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          category: newAdvice.category,
-          target_age: newAdvice.target_age,
-          content: newAdvice.content,
-          media_url: mediaUrl,
-          media_type: newAdvice.mediaType,
-          unlockType: newAdvice.unlockType,
-          password: newAdvice.password
-        })
+        body: JSON.stringify(adviceData)
       })
 
       if (response.ok) {
