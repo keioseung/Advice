@@ -149,6 +149,40 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
     setShowModal(true)
   }
 
+  const handleEditAdvice = (advice: any) => {
+    // 수정 모달을 위한 상태 추가 필요
+    console.log('Edit advice:', advice)
+    // TODO: 수정 폼 모달 구현
+  }
+
+  const handleDeleteAdvice = async (adviceId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advices/${adviceId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        // 목록에서 삭제된 조언 제거
+        setAdvices(advices.filter(advice => advice.id !== adviceId))
+        setShowModal(false)
+        alert('조언이 성공적으로 삭제되었습니다.')
+      } else {
+        const errorData = await response.json()
+        alert(`삭제에 실패했습니다: ${errorData.detail || '알 수 없는 오류'}`)
+      }
+    } catch (error) {
+      console.error('조언 삭제 중 오류 발생:', error)
+      alert('조언 삭제 중 오류가 발생했습니다. 다시 시도해주세요.')
+    }
+  }
+
   const filteredAdvices = advices.filter(advice => {
     if (filter === 'all') return true
     return advice.category === filter
@@ -281,13 +315,15 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       </div>
 
       {/* Modal */}
-      {showModal && selectedAdvice && (
-        <AdviceModal
-          advice={selectedAdvice}
-          onClose={() => setShowModal(false)}
-          userType="father"
-        />
-      )}
+              {showModal && selectedAdvice && (
+          <AdviceModal
+            advice={selectedAdvice}
+            onClose={() => setShowModal(false)}
+            userType="father"
+            onEdit={handleEditAdvice}
+            onDelete={handleDeleteAdvice}
+          />
+        )}
     </div>
   )
 } 

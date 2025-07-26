@@ -1,12 +1,14 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, User, Heart } from 'lucide-react'
+import { X, Calendar, User, Heart, Edit, Trash2 } from 'lucide-react'
 
 interface AdviceModalProps {
   advice: any
   onClose: () => void
   userType: 'father' | 'child'
+  onEdit?: (advice: any) => void
+  onDelete?: (adviceId: string) => void
 }
 
 const getCategoryEmoji = (category: string) => {
@@ -39,7 +41,7 @@ const getCategoryName = (category: string) => {
   return names[category] || category
 }
 
-export default function AdviceModal({ advice, onClose, userType }: AdviceModalProps) {
+export default function AdviceModal({ advice, onClose, userType, onEdit, onDelete }: AdviceModalProps) {
   return (
     <AnimatePresence>
       <motion.div
@@ -100,12 +102,38 @@ export default function AdviceModal({ advice, onClose, userType }: AdviceModalPr
               }
             </div>
             
-            <button
-              onClick={onClose}
-              className="btn-secondary"
-            >
-              닫기
-            </button>
+            <div className="flex items-center gap-2">
+              {/* 아버지 모드에서만 수정/삭제 버튼 표시 */}
+              {userType === 'father' && onEdit && onDelete && (
+                <>
+                  <button
+                    onClick={() => onEdit(advice)}
+                    className="btn-secondary flex items-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    수정
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('정말로 이 조언을 삭제하시겠습니까?')) {
+                        onDelete(advice.id)
+                      }
+                    }}
+                    className="btn-danger flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    삭제
+                  </button>
+                </>
+              )}
+              
+              <button
+                onClick={onClose}
+                className="btn-secondary"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

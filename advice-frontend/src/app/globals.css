@@ -63,6 +63,10 @@ body {
     @apply bg-white/80 backdrop-blur-sm text-gray-700 px-6 py-3 rounded-2xl font-medium border border-white/30 shadow-warm hover:shadow-warm-lg hover:bg-white/90 transition-all duration-300 hover:scale-105 active:scale-95;
   }
 
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl font-medium shadow-warm hover:shadow-warm-lg transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
   /* 따뜻한 입력 필드 */
   .input-field {
     @apply w-full px-4 py-3 rounded-2xl border-2 border-primary-200 bg-white/80 backdrop-blur-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-300 placeholder:text-gray-400;

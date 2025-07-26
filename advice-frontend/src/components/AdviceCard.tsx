@@ -83,11 +83,27 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
         {advice.media_url && (
           <div className="mt-4">
             {advice.media_type === 'image' ? (
-              <div className="relative rounded-lg overflow-hidden">
+              <div className="relative rounded-lg overflow-hidden bg-gray-100">
                 <img 
                   src={advice.media_url} 
                   alt="첨부 이미지"
                   className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    // 이미지 로드 실패 시 기본 이미지 표시
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div class="w-full h-48 flex items-center justify-center bg-gray-200 rounded-lg">
+                          <div class="text-center">
+                            <div class="text-gray-500 mb-2">📷</div>
+                            <div class="text-sm text-gray-600">이미지를 불러올 수 없습니다</div>
+                          </div>
+                        </div>
+                      `;
+                    }
+                  }}
                 />
                 <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
                   <Image className="w-3 h-3" />
@@ -95,18 +111,44 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
                 </div>
               </div>
             ) : advice.media_type === 'video' ? (
-              <div className="relative rounded-lg overflow-hidden">
+              <div className="relative rounded-lg overflow-hidden bg-gray-100">
                 <video 
                   src={advice.media_url}
                   className="w-full h-48 object-cover"
                   controls
+                  onError={(e) => {
+                    // 비디오 로드 실패 시 기본 메시지 표시
+                    const target = e.target as HTMLVideoElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div class="w-full h-48 flex items-center justify-center bg-gray-200 rounded-lg">
+                          <div class="text-center">
+                            <div class="text-gray-500 mb-2">🎥</div>
+                            <div class="text-sm text-gray-600">영상을 불러올 수 없습니다</div>
+                          </div>
+                        </div>
+                      `;
+                    }
+                  }}
                 />
                 <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
                   <Video className="w-3 h-3" />
                   영상
                 </div>
               </div>
-            ) : null}
+            ) : (
+              // media_type이 없는 경우 기본 표시
+              <div className="relative rounded-lg overflow-hidden bg-gray-100">
+                <div className="w-full h-48 flex items-center justify-center bg-gray-200 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-gray-500 mb-2">📎</div>
+                    <div className="text-sm text-gray-600">첨부 파일</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
