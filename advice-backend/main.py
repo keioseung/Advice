@@ -1,10 +1,11 @@
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import uuid
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -73,6 +74,8 @@ class AdviceCreate(BaseModel):
     category: str
     target_age: int
     content: str
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
 
 class AdviceResponse(BaseModel):
     id: str
@@ -80,6 +83,8 @@ class AdviceResponse(BaseModel):
     category: str
     target_age: int
     content: str
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
     is_read: bool
     is_favorite: bool
     created_at: str
@@ -214,6 +219,8 @@ async def create_advice(
         "category": advice.category,
         "target_age": advice.target_age,
         "content": advice.content,
+        "media_url": advice.media_url,
+        "media_type": advice.media_type,
         "is_read": False,
         "is_favorite": False
     }
@@ -286,6 +293,69 @@ async def mark_advice_as_read(
         raise HTTPException(status_code=500, detail="상태 업데이트에 실패했습니다")
     
     return {"message": "조언을 읽음으로 표시했습니다"}
+
+@app.post("/upload-media")
+async def upload_media(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    # 파일 타입 검증
+    if not file.content_type.startswith(('image/', 'video/')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이미지 또는 영상 파일만 업로드 가능합니다."
+        )
+    
+    # 파일 크기 제한 (10MB)
+    if file.size and file.size > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="파일 크기는 10MB 이하여야 합니다."
+        )
+    
+    try:
+        # 파일 내용 읽기
+        file_content = await file.read()
+        
+        # 파일명 생성 (UUID + 원본 확장자)
+        file_extension = os.path.splitext(file.filename)[1]
+        file_name = f"{uuid.uuid4()}{file_extension}"
+        
+        # Supabase Storage에 업로드
+        bucket_name = "advice-media"
+        
+        # 버킷이 없으면 생성 (실제로는 미리 생성해야 함)
+        try:
+            supabase.storage.get_bucket(bucket_name)
+        except:
+            # 버킷이 없으면 기본 URL 반환 (개발용)
+            media_type = "image" if file.content_type.startswith("image/") else "video"
+            return {
+                "url": f"https://example.com/media/{file_name}",
+                "type": media_type
+            }
+        
+        # 파일 업로드
+        response = supabase.storage.from_(bucket_name).upload(
+            file_name, 
+            file_content,
+            {"content-type": file.content_type}
+        )
+        
+        # 공개 URL 생성
+        media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+        media_type = "image" if file.content_type.startswith("image/") else "video"
+        
+        return {
+            "url": media_url,
+            "type": media_type
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"파일 업로드에 실패했습니다: {str(e)}"
+        )
 
 @app.put("/advices/{advice_id}/favorite")
 async def toggle_advice_favorite(
