@@ -1,5 +1,4 @@
--- 애비의 조언 앱 - JWT 토큰 기반 인증용 스키마
--- Supabase SQL Editor에서 실행하세요
+-- supabase_schema_jwt_fixed.sql 파일을 Supabase SQL Editor에서 실행
 
 -- Drop existing tables and views
 DROP VIEW IF EXISTS advice_stats CASCADE;

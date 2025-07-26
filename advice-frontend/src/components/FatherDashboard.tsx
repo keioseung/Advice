@@ -60,9 +60,14 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
   }, [])
 
   const handleAddAdvice = async (newAdvice: any) => {
+    console.log('FatherDashboard handleAddAdvice called with:', newAdvice) // 디버깅용 로그
     try {
       const token = localStorage.getItem('token')
-      if (!token) return
+      console.log('Token from localStorage:', token ? 'Present' : 'Missing') // 디버깅용 로그
+      if (!token) {
+        console.log('No token found, returning early') // 디버깅용 로그
+        return
+      }
 
       // 미디어 파일이 있는 경우 먼저 업로드
       let mediaUrl = newAdvice.media_url

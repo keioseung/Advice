@@ -66,7 +66,14 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!targetAge || !content.trim()) return
+    console.log('AdviceForm handleSubmit called') // 디버깅용 로그
+    console.log('targetAge:', targetAge) // 디버깅용 로그
+    console.log('content:', content) // 디버깅용 로그
+    
+    if (!targetAge || !content.trim()) {
+      console.log('Validation failed - missing targetAge or content') // 디버깅용 로그
+      return
+    }
 
     const newAdvice = {
       category,
@@ -78,6 +85,7 @@ export default function AdviceForm({ onAddAdvice }: AdviceFormProps) {
       password: unlockType === 'password' ? password : null
     }
 
+    console.log('Calling onAddAdvice with:', newAdvice) // 디버깅용 로그
     onAddAdvice(newAdvice)
     
     // 폼 초기화
