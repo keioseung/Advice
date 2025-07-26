@@ -480,11 +480,11 @@ async def upload_media(
                     media_url = media_url[:-1]
                 media_url = media_url.strip()
                 
-                # 실제 Supabase Storage URL 형식에 맞춰 슬래시 2개 확인
-                if '/advice-media/' in media_url and not '/advice-media//' in media_url:
-                    # 슬래시 1개인 경우 2개로 수정
+                # 강제로 슬래시 2개 형식으로 수정
+                if '/advice-media/' in media_url:
+                    # 슬래시 1개를 2개로 강제 변경
                     media_url = media_url.replace('/advice-media/', '/advice-media//')
-                    print(f"Fixed URL to match Supabase format: {media_url}")
+                    print(f"Force fixed URL to double slash format: {media_url}")
                 
                 print(f"Cleaned media_url: {media_url}")
                 print(f"URL ends with semicolon: {media_url.endswith(';')}")

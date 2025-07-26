@@ -41,6 +41,24 @@ const getCategoryName = (category: string) => {
 }
 
 export default function AdviceCard({ advice, onClick, userType, onToggleFavorite }: AdviceCardProps) {
+  // URL 정리 함수
+  const cleanMediaUrl = (url: string) => {
+    if (!url) return url;
+    let cleanedUrl = url.trim();
+    // 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
+    while (cleanedUrl.endsWith(';')) {
+      cleanedUrl = cleanedUrl.slice(0, -1);
+    }
+    // 강제로 슬래시 2개 형식으로 수정
+    if (cleanedUrl.includes('/advice-media/')) {
+      // 슬래시 1개를 2개로 강제 변경
+      cleanedUrl = cleanedUrl.replace('/advice-media/', '/advice-media//');
+    }
+    return cleanedUrl.trim();
+  };
+
+  const mediaUrl = cleanMediaUrl(advice.media_url);
+
   return (
     <motion.div
       className="glass-effect rounded-2xl p-6 cursor-pointer card-hover"
@@ -80,19 +98,19 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
         </p>
         
         {/* Media Display */}
-        {advice.media_url && (
+        {mediaUrl && (
           <div className="mt-4">
             {advice.media_type === 'image' ? (
               <div className="relative rounded-lg overflow-hidden bg-gray-100">
                 <img 
-                  src={advice.media_url} 
+                  src={mediaUrl} 
                   alt="첨부 이미지"
                   className="w-full h-48 object-cover"
                   onLoad={(e) => {
-                    console.log('Image loaded successfully:', advice.media_url)
+                    console.log('Image loaded successfully:', mediaUrl)
                   }}
                   onError={(e) => {
-                    console.error('Image failed to load:', advice.media_url)
+                    console.error('Image failed to load:', mediaUrl)
                     // 이미지 로드 실패 시 기본 이미지 표시
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -103,7 +121,7 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
                           <div class="text-center">
                             <div class="text-gray-500 mb-2">📷</div>
                             <div class="text-sm text-gray-600">이미지를 불러올 수 없습니다</div>
-                            <div class="text-xs text-gray-400 mt-1">URL: ${advice.media_url}</div>
+                            <div class="text-xs text-gray-400 mt-1">URL: ${mediaUrl}</div>
                           </div>
                         </div>
                       `;
@@ -118,14 +136,14 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
             ) : advice.media_type === 'video' ? (
               <div className="relative rounded-lg overflow-hidden bg-gray-100">
                 <video 
-                  src={advice.media_url}
+                  src={mediaUrl}
                   className="w-full h-48 object-cover"
                   controls
                   onLoadStart={() => {
-                    console.log('Video loading started:', advice.media_url)
+                    console.log('Video loading started:', mediaUrl)
                   }}
                   onError={(e) => {
-                    console.error('Video failed to load:', advice.media_url)
+                    console.error('Video failed to load:', mediaUrl)
                     // 비디오 로드 실패 시 기본 메시지 표시
                     const target = e.target as HTMLVideoElement;
                     target.style.display = 'none';
@@ -136,7 +154,7 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
                           <div class="text-center">
                             <div class="text-gray-500 mb-2">🎥</div>
                             <div class="text-sm text-gray-600">영상을 불러올 수 없습니다</div>
-                            <div class="text-xs text-gray-400 mt-1">URL: ${advice.media_url}</div>
+                            <div class="text-xs text-gray-400 mt-1">URL: ${mediaUrl}</div>
                           </div>
                         </div>
                       `;
@@ -155,7 +173,7 @@ export default function AdviceCard({ advice, onClick, userType, onToggleFavorite
                   <div className="text-center">
                     <div className="text-gray-500 mb-2">📎</div>
                     <div className="text-sm text-gray-600">첨부 파일</div>
-                    <div className="text-xs text-gray-400 mt-1">URL: {advice.media_url}</div>
+                    <div className="text-xs text-gray-400 mt-1">URL: {mediaUrl}</div>
                   </div>
                 </div>
               </div>

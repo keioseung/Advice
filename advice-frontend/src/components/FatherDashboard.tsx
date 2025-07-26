@@ -98,20 +98,44 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
         if (uploadResponse.ok) {
           const uploadData = await uploadResponse.json()
           mediaUrl = uploadData.url
+          
           // 강력한 세미콜론 제거
           if (mediaUrl) {
+            console.log('Original mediaUrl:', uploadData.url)
+            
             // 앞뒤 공백 제거
             mediaUrl = mediaUrl.trim()
+            
             // 끝에 있는 세미콜론 제거 (여러 개일 수도 있음)
             while (mediaUrl.endsWith(';')) {
               mediaUrl = mediaUrl.slice(0, -1)
             }
+            
+            // 강제로 슬래시 2개 형식으로 수정
+            if (mediaUrl.includes('/advice-media/')) {
+              // 슬래시 1개를 2개로 강제 변경
+              mediaUrl = mediaUrl.replace('/advice-media/', '/advice-media//')
+              console.log('Force fixed URL to double slash format:', mediaUrl)
+            }
+            
             // 다시 공백 제거
             mediaUrl = mediaUrl.trim()
-            console.log('Original mediaUrl:', uploadData.url)
+            
             console.log('Cleaned mediaUrl:', mediaUrl)
             console.log('Still ends with semicolon:', mediaUrl.endsWith(';'))
+            console.log('Has double slash:', mediaUrl.includes('/advice-media//'))
+            
+            // URL이 유효한지 확인
+            if (!mediaUrl.startsWith('http')) {
+              console.error('Invalid media URL:', mediaUrl)
+              alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
+              return
+            }
           }
+        } else {
+          console.error('Media upload failed:', uploadResponse.status)
+          alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
+          return
         }
       }
 
@@ -329,15 +353,15 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       </div>
 
       {/* Modal */}
-              {showModal && selectedAdvice && (
-          <AdviceModal
-            advice={selectedAdvice}
-            onClose={() => setShowModal(false)}
-            userType="father"
-            onEdit={handleEditAdvice}
-            onDelete={handleDeleteAdvice}
-          />
-        )}
+      {showModal && selectedAdvice && (
+        <AdviceModal
+          advice={selectedAdvice}
+          onClose={() => setShowModal(false)}
+          userType="father"
+          onEdit={handleEditAdvice}
+          onDelete={handleDeleteAdvice}
+        />
+      )}
     </div>
   )
-} 
+}
