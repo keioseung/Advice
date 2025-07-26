@@ -28,6 +28,7 @@ export default function Home() {
   const handleLogout = () => {
     setUser(null)
     localStorage.removeItem('user')
+    localStorage.removeItem('token') // 토큰도 제거
   }
 
   if (loading) {

@@ -41,6 +41,14 @@ export default function AuthSection({ onLogin }: AuthSectionProps) {
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Login response data:', data) // 디버깅용 로그
+        
+        // 토큰을 localStorage에 저장
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token)
+          console.log('Token saved to localStorage') // 디버깅용 로그
+        }
+        
         // user_type을 명시적으로 추가
         const userData = {
           ...data,
