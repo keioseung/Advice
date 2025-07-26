@@ -225,8 +225,8 @@ async def create_advice(
     # media_url에서 세미콜론 제거
     media_url = advice.media_url
     if media_url:
-        # 세미콜론 제거
-        media_url = media_url.rstrip(';')
+        # 세미콜론 제거 (더 강력한 정리)
+        media_url = media_url.strip().rstrip(';').strip()
         print(f"Original media_url: {advice.media_url}")
         print(f"Cleaned media_url: {media_url}")
     
@@ -309,14 +309,15 @@ async def get_advices(
         advices = []
         for advice in response.data:
             try:
-                # media_url에서 세미콜론 제거
+                # media_url에서 세미콜론 제거 (더 강력한 정리)
                 if advice.get('media_url'):
                     original_url = advice['media_url']
-                    if original_url.endswith(';'):
-                        advice['media_url'] = original_url[:-1]
-                        print(f"Removed semicolon from advice media_url: {original_url} -> {advice['media_url']}")
+                    cleaned_url = original_url.strip().rstrip(';').strip()
+                    if cleaned_url != original_url:
+                        advice['media_url'] = cleaned_url
+                        print(f"Cleaned media_url: {original_url} -> {cleaned_url}")
                     else:
-                        print(f"No semicolon found in media_url: {original_url}")
+                        print(f"Media URL already clean: {original_url}")
                 
                 advice_response = AdviceResponse(**advice)
                 advices.append(advice_response)
@@ -424,6 +425,8 @@ async def upload_media(
                 # 버킷 생성 실패 시 임시 URL 반환
                 media_type = "image" if file.content_type.startswith("image/") else "video"
                 temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                # 세미콜론 제거
+                temp_url = temp_url.strip().rstrip(';').strip()
                 return {
                     "url": temp_url,
                     "type": media_type
@@ -440,9 +443,10 @@ async def upload_media(
             
             # 공개 URL 생성 (세미콜론 제거)
             media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-            # 세미콜론 제거
-            if media_url.endswith(';'):
-                media_url = media_url[:-1]
+            # 세미콜론 제거 (더 강력한 정리)
+            media_url = media_url.strip().rstrip(';').strip()
+            print(f"Original Supabase URL: {supabase.storage.from_(bucket_name).get_public_url(file_name)}")
+            print(f"Cleaned media_url: {media_url}")
             
             media_type = "image" if file.content_type.startswith("image/") else "video"
             
@@ -455,6 +459,8 @@ async def upload_media(
             if not media_url.startswith(settings.SUPABASE_URL):
                 print(f"Warning: Media URL doesn't match Supabase URL")
                 media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                # 세미콜론 제거
+                media_url = media_url.strip().rstrip(';').strip()
                 print(f"Corrected URL: {media_url}")
             
             return {
@@ -467,6 +473,8 @@ async def upload_media(
             # 업로드 실패 시 임시 URL 반환
             media_type = "image" if file.content_type.startswith("image/") else "video"
             temp_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+            # 세미콜론 제거
+            temp_url = temp_url.strip().rstrip(';').strip()
             return {
                 "url": temp_url,
                 "type": media_type
