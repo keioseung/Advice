@@ -63,7 +63,6 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
-    user_id: str
     user_type: str
     name: str
     father_id: Optional[str] = None
@@ -130,7 +129,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise credentials_exception
     
     # Supabase에서 사용자 정보 조회
-    response = supabase.table("users").select("*").eq("user_id", token_data.user_id).execute()
+    response = supabase.table("users").select("*").eq("id", token_data.user_id).execute()
     
     if not response.data:
         raise credentials_exception
@@ -146,13 +145,13 @@ async def root():
 @app.post("/auth/register", response_model=Token)
 async def register(user: UserCreate):
     # 기존 사용자 확인
-    response = supabase.table("users").select("*").eq("user_id", user.user_id).execute()
+    response = supabase.table("users").select("*").eq("id", user.user_id).execute()
     if response.data:
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자 ID입니다")
     
     # 자녀인 경우 아버지 ID 확인
     if user.user_type == "child" and user.father_id:
-        father_response = supabase.table("users").select("*").eq("user_id", user.father_id).eq("user_type", "father").execute()
+        father_response = supabase.table("users").select("*").eq("id", user.father_id).eq("user_type", "father").execute()
         if not father_response.data:
             raise HTTPException(status_code=400, detail="존재하지 않는 아버지 ID입니다")
     
@@ -161,7 +160,7 @@ async def register(user: UserCreate):
     
     # 사용자 생성
     user_data = {
-        "user_id": user.user_id,
+        "id": user.user_id,
         "password_hash": hashed_password,
         "user_type": user.user_type,
         "name": user.name,
@@ -184,7 +183,7 @@ async def register(user: UserCreate):
 @app.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
     # 사용자 조회
-    response = supabase.table("users").select("*").eq("user_id", user_credentials.user_id).execute()
+    response = supabase.table("users").select("*").eq("id", user_credentials.user_id).execute()
     
     if not response.data:
         raise HTTPException(status_code=401, detail="잘못된 사용자 ID 또는 비밀번호입니다")
@@ -198,7 +197,7 @@ async def login(user_credentials: UserLogin):
     # 토큰 생성
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user_data["user_id"]}, expires_delta=access_token_expires
+        data={"sub": user_data["id"]}, expires_delta=access_token_expires
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
@@ -215,7 +214,7 @@ async def create_advice(
     if current_user.user_type != "father":
         raise HTTPException(status_code=403, detail="아버지만 조언을 작성할 수 있습니다")
     advice_data = {
-        "author_id": current_user.user_id,
+        "author_id": current_user.id,
         "category": advice.category,
         "target_age": advice.target_age,
         "content": advice.content,
