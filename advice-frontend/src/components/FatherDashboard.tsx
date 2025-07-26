@@ -105,9 +105,12 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       if (response.ok) {
         const createdAdvice = await response.json()
         setAdvices([createdAdvice, ...advices])
+        // 성공 메시지
+        alert('조언이 성공적으로 저장되었습니다! 💝')
       } else {
-        console.error('조언 생성에 실패했습니다:', response.status)
-        alert('조언 생성에 실패했습니다. 다시 시도해주세요.')
+        const errorData = await response.json()
+        console.error('조언 생성에 실패했습니다:', response.status, errorData)
+        alert(`조언 생성에 실패했습니다: ${errorData.detail || '알 수 없는 오류'}`)
       }
     } catch (error) {
       console.error('조언 생성 중 오류 발생:', error)

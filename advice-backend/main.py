@@ -63,6 +63,7 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
+    user_id: str  # id와 동일한 값
     user_type: str
     name: str
     father_id: Optional[str] = None
@@ -139,6 +140,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise credentials_exception
     
     user_data = response.data[0]
+    # user_id 필드 추가 (id와 동일한 값)
+    user_data["user_id"] = user_data["id"]
     return UserResponse(**user_data)
 
 # API 엔드포인트
@@ -218,7 +221,7 @@ async def create_advice(
     if current_user.user_type != "father":
         raise HTTPException(status_code=403, detail="아버지만 조언을 작성할 수 있습니다")
     advice_data = {
-        "author_id": current_user.id,
+        "author_id": current_user.user_id,
         "category": advice.category,
         "target_age": advice.target_age,
         "content": advice.content,
