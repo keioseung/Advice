@@ -267,18 +267,19 @@ async def get_advices(
     try:
         print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}, father_id: {current_user.father_id}")  # 디버깅용 로그
         
-        query = supabase.table("advices")
+        # Supabase 쿼리 빌더 수정
         if current_user.user_type == "father":
-            query = query.eq("author_id", current_user.user_id)
+            response = supabase.table("advices").select("*").eq("author_id", current_user.user_id)
         else:
-            query = query.eq("author_id", current_user.father_id)
+            response = supabase.table("advices").select("*").eq("author_id", current_user.father_id)
+        
         if category:
-            query = query.eq("category", category)
+            response = response.eq("category", category)
         if target_age:
-            query = query.eq("target_age", target_age)
+            response = response.eq("target_age", target_age)
         
         print(f"Executing query for user_type: {current_user.user_type}")  # 디버깅용 로그
-        response = query.order("created_at", desc=True).execute()
+        response = response.order("created_at", desc=True).execute()
         print(f"Advices response: {response.data}")  # 디버깅용 로그
         print(f"Number of advices found: {len(response.data) if response.data else 0}")  # 디버깅용 로그
         
