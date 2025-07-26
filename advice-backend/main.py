@@ -272,7 +272,7 @@ async def get_advices(
         query = query.eq("category", category)
     if target_age:
         query = query.eq("target_age", target_age)
-    print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}")  # 디버깅용 로그
+    print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}, father_id: {current_user.father_id}")  # 디버깅용 로그
     response = query.order("created_at", desc=True).execute()
     print(f"Advices response: {response.data}")  # 디버깅용 로그
     return [AdviceResponse(**advice) for advice in response.data]
