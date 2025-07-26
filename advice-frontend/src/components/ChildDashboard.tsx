@@ -11,7 +11,8 @@ import {
   Sparkles,
   Gift,
   Users,
-  MessageCircle
+  MessageCircle,
+  Key
 } from 'lucide-react'
 import AdviceCard from './AdviceCard'
 import AdviceModal from './AdviceModal'
