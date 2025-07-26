@@ -458,24 +458,49 @@ async def upload_media(
         
         # 버킷 존재 확인 및 생성 (더 안전한 방법)
         try:
-            # 먼저 버킷이 존재하는지 확인
-            buckets = supabase.storage.list_buckets()
-            bucket_exists = any(bucket['name'] == bucket_name for bucket in buckets)
+            print(f"Checking if bucket '{bucket_name}' exists...")
             
-            if not bucket_exists:
-                print(f"Bucket {bucket_name} does not exist, creating...")
-                # 버킷 생성 시 더 안전한 옵션 사용
-                supabase.storage.create_bucket(
-                    bucket_name, 
-                    {
-                        "public": True,
-                        "allowed_mime_types": ["image/*", "video/*"],
-                        "file_size_limit": 10485760  # 10MB
-                    }
-                )
-                print(f"Successfully created bucket: {bucket_name}")
-            else:
-                print(f"Bucket {bucket_name} already exists")
+            # 먼저 버킷이 존재하는지 확인
+            try:
+                buckets = supabase.storage.list_buckets()
+                bucket_exists = any(bucket['name'] == bucket_name for bucket in buckets)
+                print(f"Bucket list: {[bucket['name'] for bucket in buckets]}")
+                print(f"Bucket '{bucket_name}' exists: {bucket_exists}")
+                
+                if not bucket_exists:
+                    print(f"Bucket {bucket_name} does not exist, creating...")
+                    # 버킷 생성 시 더 안전한 옵션 사용
+                    create_response = supabase.storage.create_bucket(
+                        bucket_name, 
+                        {
+                            "public": True,
+                            "allowed_mime_types": ["image/*", "video/*"],
+                            "file_size_limit": 10485760  # 10MB
+                        }
+                    )
+                    print(f"Bucket creation response: {create_response}")
+                    print(f"Successfully created bucket: {bucket_name}")
+                else:
+                    print(f"Bucket {bucket_name} already exists")
+                    
+            except Exception as list_error:
+                print(f"Error listing buckets: {list_error}")
+                # 버킷 목록 조회 실패 시에도 버킷 생성 시도
+                try:
+                    print(f"Attempting to create bucket {bucket_name} anyway...")
+                    create_response = supabase.storage.create_bucket(
+                        bucket_name, 
+                        {
+                            "public": True,
+                            "allowed_mime_types": ["image/*", "video/*"],
+                            "file_size_limit": 10485760  # 10MB
+                        }
+                    )
+                    print(f"Bucket creation response: {create_response}")
+                    print(f"Successfully created bucket: {bucket_name}")
+                except Exception as create_error:
+                    print(f"Failed to create bucket: {create_error}")
+                    # 버킷 생성 실패 시에도 계속 진행 (이미 존재할 수 있음)
                 
         except Exception as bucket_error:
             print(f"Bucket operation error: {bucket_error}")
@@ -484,16 +509,35 @@ async def upload_media(
         # 파일 업로드
         try:
             print(f"Attempting to upload file: {file_name}")
+            print(f"Bucket name: {bucket_name}")
+            print(f"File content length: {len(file_content)} bytes")
+            print(f"File content type: {file.content_type}")
+            
+            # 파일 업로드 시도
             response = supabase.storage.from_(bucket_name).upload(
                 file_name, 
                 file_content,
                 {"content-type": file.content_type}
             )
             print(f"Upload response: {response}")
+            print(f"Upload response type: {type(response)}")
+            
+            # 업로드 성공 여부 확인
+            if hasattr(response, 'error') and response.error:
+                print(f"Upload error in response: {response.error}")
+                raise Exception(f"Upload failed: {response.error}")
+            
+            print(f"File uploaded successfully to bucket: {bucket_name}")
             
             # 공개 URL 생성
-            media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
-            print(f"Original Supabase URL: {media_url}")
+            try:
+                media_url = supabase.storage.from_(bucket_name).get_public_url(file_name)
+                print(f"Original Supabase URL: {media_url}")
+            except Exception as url_error:
+                print(f"Error getting public URL: {url_error}")
+                # 수동으로 URL 생성
+                media_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_name}"
+                print(f"Manually created URL: {media_url}")
             
             # URL 정리 (세미콜론 및 공백 제거)
             if media_url:
