@@ -26,6 +26,10 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
   const [currentAge] = useState(25) // 임시로 25세 설정
   const [fatherName, setFatherName] = useState('')
   const [showFatherNameInput, setShowFatherNameInput] = useState(true)
+  const [unlockedAdvices, setUnlockedAdvices] = useState<string[]>([])
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [selectedFutureAdvice, setSelectedFutureAdvice] = useState<any>(null)
+  const [password, setPassword] = useState('')
 
   // 샘플 데이터
   useEffect(() => {
@@ -81,6 +85,23 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
     setAdvices(prev => prev.map(a => 
       a.id === adviceId ? { ...a, is_favorite: !a.is_favorite } : a
     ))
+  }
+
+  const handleFutureAdviceClick = (advice: any) => {
+    setSelectedFutureAdvice(advice)
+    setShowPasswordModal(true)
+  }
+
+  const handlePasswordSubmit = () => {
+    // 간단한 패스워드 체크 (실제로는 더 복잡하게 구현)
+    if (password === '사랑해' || password === 'love') {
+      setUnlockedAdvices(prev => [...prev, selectedFutureAdvice.id])
+      setShowPasswordModal(false)
+      setPassword('')
+      setSelectedFutureAdvice(null)
+    } else {
+      alert('패스워드가 틀렸어요. 다시 시도해보세요!')
+    }
   }
 
   const filteredAdvices = advices.filter(advice => {
@@ -235,7 +256,13 @@ export default function ChildDashboard({ user, onLogout }: ChildDashboardProps) 
             <AdviceCard
               key={advice.id}
               advice={advice}
-              onClick={() => handleAdviceClick(advice)}
+              onClick={() => {
+                if (filter === 'future') {
+                  handleFutureAdviceClick(advice)
+                } else {
+                  handleAdviceClick(advice)
+                }
+              }}
               userType="child"
               onToggleFavorite={() => handleToggleFavorite(advice.id)}
             />
