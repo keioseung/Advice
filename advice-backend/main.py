@@ -482,9 +482,9 @@ async def upload_media(
             
             # 파일 업로드 시도
             response = supabase.storage.from_(bucket_name).upload(
-                file_name, 
-                file_content,
-                {"content-type": file.content_type}
+                path=file_name, 
+                file=file_content,
+                file_options={"content-type": file.content_type}
             )
             print(f"Upload response: {response}")
             print(f"Upload response type: {type(response)}")
