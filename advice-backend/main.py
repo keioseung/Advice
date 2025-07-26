@@ -275,6 +275,7 @@ async def get_advices(
     print(f"Fetching advices for user: {current_user.user_id}, type: {current_user.user_type}, father_id: {current_user.father_id}")  # 디버깅용 로그
     response = query.order("created_at", desc=True).execute()
     print(f"Advices response: {response.data}")  # 디버깅용 로그
+    print(f"Number of advices found: {len(response.data) if response.data else 0}")  # 디버깅용 로그
     return [AdviceResponse(**advice) for advice in response.data]
 
 @app.get("/advices/{advice_id}", response_model=AdviceResponse)
