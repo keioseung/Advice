@@ -355,15 +355,15 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
       </div>
 
       {/* Modal */}
-      {showModal && selectedAdvice && (
-        <AdviceModal
-          advice={selectedAdvice}
-          onClose={() => setShowModal(false)}
-          userType="father"
-          onEdit={handleEditAdvice}
-          onDelete={handleDeleteAdvice}
-        />
-      )}
+              {showModal && selectedAdvice && (
+          <AdviceModal
+            advice={selectedAdvice}
+            onClose={() => setShowModal(false)}
+            userType="father"
+            onEdit={handleEditAdvice}
+            onDelete={handleDeleteAdvice}
+          />
+        )}
     </div>
   )
-}
+} 

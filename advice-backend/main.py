@@ -478,31 +478,8 @@ async def upload_media(
             print(f"File content length: {len(file_content)} bytes")
             print(f"File content type: {file.content_type}")
             
-            # 먼저 버킷이 실제로 존재하는지 다시 확인
-            try:
-                bucket_info = supabase.storage.get_bucket(bucket_name)
-                print(f"Bucket info: {bucket_info}")
-            except Exception as bucket_check_error:
-                print(f"Bucket check error: {bucket_check_error}")
-                # 버킷이 없으면 생성 시도
-                try:
-                    print(f"Attempting to create bucket {bucket_name}...")
-                    create_response = supabase.storage.create_bucket(
-                        bucket_name, 
-                        {
-                            "public": True,
-                            "allowed_mime_types": ["image/*", "video/*"],
-                            "file_size_limit": 10485760  # 10MB
-                        }
-                    )
-                    print(f"Bucket creation response: {create_response}")
-                except Exception as create_error:
-                    print(f"Failed to create bucket: {create_error}")
-                    # 버킷 생성 실패 시 에러 반환
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Storage 버킷을 생성할 수 없습니다. 관리자에게 문의하세요."
-                    )
+                        # 버킷 체크는 건너뛰고 바로 업로드 시도 (버킷이 이미 존재함)
+            print(f"Proceeding with upload to existing bucket: {bucket_name}")
             
             # 파일 업로드 시도 (수정된 구문)
             try:
@@ -523,12 +500,12 @@ async def upload_media(
             except Exception as upload_exception:
                 print(f"Upload exception: {upload_exception}")
                 # 다른 방법으로 시도
-                try:
-                    response = supabase.storage.from_(bucket_name).upload(
-                        file_name, 
-                        file_content,
-                        {"content-type": file.content_type}
-                    )
+        try:
+            response = supabase.storage.from_(bucket_name).upload(
+                file_name, 
+                file_content,
+                {"content-type": file.content_type}
+            )
                     print(f"Alternative upload response: {response}")
                 except Exception as alt_exception:
                     print(f"Alternative upload also failed: {alt_exception}")

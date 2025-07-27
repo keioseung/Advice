@@ -1,12 +1,19 @@
 -- Supabase Storage RLS 정책 설정 (파일 업로드 권한)
 -- 이 정책들이 없으면 파일 업로드가 400 에러로 실패합니다
 
--- 1. 기존 Storage RLS 정책 삭제 (있다면)
+-- 1. 현재 Storage RLS 정책 확인
+SELECT policyname, cmd, qual, with_check 
+FROM pg_policies 
+WHERE tablename = 'objects' AND schemaname = 'storage';
+
+-- 2. 기존 Storage RLS 정책 삭제 (있다면)
 DROP POLICY IF EXISTS "Allow authenticated users to upload files" ON storage.objects;
 DROP POLICY IF EXISTS "Allow authenticated users to read files" ON storage.objects;
 DROP POLICY IF EXISTS "Allow public read access" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to update files" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to delete files" ON storage.objects;
 
--- 2. 새로운 Storage RLS 정책 생성
+-- 3. 새로운 Storage RLS 정책 생성
 -- INSERT 정책 (파일 업로드)
 CREATE POLICY "Allow authenticated users to upload files" ON storage.objects
 FOR INSERT WITH CHECK (
@@ -34,7 +41,12 @@ FOR DELETE USING (
     auth.uid() IS NOT NULL
 );
 
--- 3. 버킷이 존재하는지 확인하고 없다면 생성
+-- 4. 정책 생성 확인
+SELECT policyname, cmd, qual, with_check 
+FROM pg_policies 
+WHERE tablename = 'objects' AND schemaname = 'storage';
+
+-- 5. 버킷이 존재하는지 확인하고 없다면 생성
 -- (이 부분은 Supabase Dashboard에서 수동으로 해야 할 수도 있음)
 -- INSERT INTO storage.buckets (id, name, public) 
 -- VALUES ('advice-media', 'advice-media', true)
