@@ -511,7 +511,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                         />
                       </div>
                       <div className="w-12 text-sm font-bold text-gray-800">
-                        {count}개
+                        {Number(count)}개
                       </div>
                     </div>
                   ))}
