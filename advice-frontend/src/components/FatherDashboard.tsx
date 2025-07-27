@@ -446,13 +446,13 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                 </div>
                 <div className="glass-effect rounded-2xl p-4 text-center">
                   <div className="text-2xl font-bold text-gray-800">
-                    {Math.max(...Object.values(ageDistribution.age_distribution))}
+                    {Math.max(...Object.values(ageDistribution.age_distribution).map(v => Number(v)))}
                   </div>
                   <div className="text-sm text-gray-600">최대 메시지 수</div>
                 </div>
                 <div className="glass-effect rounded-2xl p-4 text-center">
                   <div className="text-2xl font-bold text-gray-800">
-                    {Math.min(...Object.values(ageDistribution.age_distribution))}
+                    {Math.min(...Object.values(ageDistribution.age_distribution).map(v => Number(v)))}
                   </div>
                   <div className="text-sm text-gray-600">최소 메시지 수</div>
                 </div>
@@ -506,7 +506,7 @@ export default function FatherDashboard({ user, onLogout }: FatherDashboardProps
                         <div 
                           className="bg-gradient-to-r from-secondary-500 to-love-500 h-4 rounded-full transition-all duration-500"
                           style={{ 
-                            width: `${(count / Math.max(...Object.values(ageDistribution.age_distribution))) * 100}%` 
+                            width: `${(Number(count) / Math.max(...Object.values(ageDistribution.age_distribution).map(v => Number(v)))) * 100}%` 
                           }}
                         />
                       </div>
