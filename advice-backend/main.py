@@ -68,6 +68,7 @@ class UserResponse(BaseModel):
     user_type: str
     name: str
     father_id: Optional[str] = None
+    age: Optional[int] = None  # 자녀 나이 필드 추가
     created_at: str
     updated_at: str
 
@@ -101,6 +102,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[str] = None
+
+class AgeUpdate(BaseModel):
+    age: int
 
 # 유틸리티 함수
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -668,8 +672,9 @@ async def get_stats(current_user: UserResponse = Depends(get_current_user)):
         response = supabase.table("advices").select("*").eq("author_id", current_user.father_id).execute()
         advices = response.data
         
-        # 현재 나이 (임시로 25세 설정)
-        current_age = 25
+        # 사용자의 현재 나이 가져오기
+        user_response = supabase.table("users").select("age").eq("id", current_user.id).execute()
+        current_age = user_response.data[0].get("age") if user_response.data and user_response.data[0].get("age") is not None else 25
         
         available_advices = [a for a in advices if a["target_age"] <= current_age]
         future_advices = [a for a in advices if a["target_age"] > current_age]
@@ -681,6 +686,69 @@ async def get_stats(current_user: UserResponse = Depends(get_current_user)):
             "favorite_advices": len(favorite_advices),
             "current_age": current_age
         }
+
+@app.put("/users/age")
+async def update_user_age(
+    age_update: AgeUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """자녀의 나이를 업데이트합니다."""
+    if current_user.user_type != "child":
+        raise HTTPException(status_code=403, detail="자녀만 나이를 설정할 수 있습니다")
+    
+    if age_update.age < 0 or age_update.age > 120:
+        raise HTTPException(status_code=400, detail="유효한 나이를 입력해주세요 (0-120세)")
+    
+    try:
+        response = supabase.table("users").update({"age": age_update.age}).eq("id", current_user.id).execute()
+        if not response.data:
+            raise HTTPException(status_code=500, detail="나이 업데이트에 실패했습니다")
+        
+        return {"message": "나이가 성공적으로 업데이트되었습니다", "age": age_update.age}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"나이 업데이트 중 오류 발생: {str(e)}")
+
+@app.get("/stats/age-distribution")
+async def get_age_distribution(current_user: UserResponse = Depends(get_current_user)):
+    """연령별 메시지 분포 통계를 반환합니다."""
+    if current_user.user_type == "father":
+        # 아버지가 자신이 작성한 메시지들의 연령별 분포 확인
+        response = supabase.table("advices").select("*").eq("author_id", current_user.user_id).execute()
+    else:
+        # 자녀가 아버지가 작성한 메시지들의 연령별 분포 확인
+        response = supabase.table("advices").select("*").eq("author_id", current_user.father_id).execute()
+    
+    advices = response.data
+    
+    # 연령별 분포 계산
+    age_distribution = {}
+    for advice in advices:
+        age = advice["target_age"]
+        if age not in age_distribution:
+            age_distribution[age] = 0
+        age_distribution[age] += 1
+    
+    # 연령순으로 정렬
+    sorted_distribution = dict(sorted(age_distribution.items()))
+    
+    # 현재 사용자의 나이 정보 가져오기
+    user_response = supabase.table("users").select("age").eq("id", current_user.id).execute()
+    current_age = user_response.data[0].get("age") if user_response.data else None
+    
+    return {
+        "age_distribution": sorted_distribution,
+        "total_messages": len(advices),
+        "current_age": current_age,
+        "age_ranges": {
+            "childhood": sum(1 for a in advices if a["target_age"] <= 12),
+            "teenage": sum(1 for a in advices if 13 <= a["target_age"] <= 19),
+            "twenties": sum(1 for a in advices if 20 <= a["target_age"] <= 29),
+            "thirties": sum(1 for a in advices if 30 <= a["target_age"] <= 39),
+            "forties": sum(1 for a in advices if 40 <= a["target_age"] <= 49),
+            "fifties": sum(1 for a in advices if 50 <= a["target_age"] <= 59),
+            "sixties_plus": sum(1 for a in advices if a["target_age"] >= 60)
+        }
+    }
 
 if __name__ == "__main__":
     import uvicorn

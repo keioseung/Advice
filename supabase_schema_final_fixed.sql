@@ -7,12 +7,14 @@ DROP TABLE IF EXISTS advices CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Create users table with VARCHAR id
-CREATE TABLE users (
-    id VARCHAR(255) PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS users (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     user_type VARCHAR(50) NOT NULL CHECK (user_type IN ('father', 'child')),
     name VARCHAR(255) NOT NULL,
     father_id VARCHAR(255),
+    age INTEGER CHECK (age >= 0 AND age <= 120),  -- 자녀 나이 필드 추가
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
